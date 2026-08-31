@@ -1,0 +1,5 @@
+plan/**/temp/
+*.jou
+*.log
+*.tmp
+__pycache__/

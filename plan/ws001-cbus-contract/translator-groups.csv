@@ -1,0 +1,25 @@
+group,direction_in_passive_target,direction_in_busmaster,required_bus_drive_type,safety_control,notes
+addr_lo,host_to_fpga,bidirectional,tri_state,master_grant_and_drive_permit,AB00-AB15
+addr_hi,host_to_fpga,bidirectional,tri_state,master_grant_and_drive_permit,AB16-AB23; 20-bit compatibility is decode policy not missing pins
+data,bidirectional,bidirectional,tri_state,selected_cycle_and_drive_permit,DB00-DB15; separate DIR and OE
+cmd_bidir,host_to_fpga,bidirectional,tri_state,master_grant_and_drive_permit,IOR IOW MRC MWC MWE BHE
+host_ctl_in,host_to_fpga,host_to_fpga,input_only,always_safe_input,RESET POWER clocks refresh and host indications
+target_resp_ts,fpga_to_host,fpga_to_host,tri_state,selected_cycle_and_drive_permit,IORDY and other tri-state responses
+target_resp_oc,fpga_sink_to_host,fpga_sink_to_host,open_collector,assertion_and_drive_permit,IOCHK and open-collector responses
+irq_ts,fpga_to_host,fpga_to_host,tri_state,irq_selected_and_drive_permit,IR3 IR5 IR6 IR10_or_11 IR12 IR13
+irq_oc,fpga_sink_to_host,fpga_sink_to_host,open_collector,irq_selected_and_drive_permit,IR9
+dma_in,host_to_fpga,host_to_fpga,input_only,always_safe_input,DACK and DMATC
+dma_out_ts,fpga_to_host,fpga_to_host,tri_state,dma_active_and_drive_permit,WORD
+dma_out_oc,fpga_sink_to_host,fpga_sink_to_host,open_collector,dma_active_and_drive_permit,DRQ
+arb_in,host_to_fpga,host_to_fpga,input_only,always_safe_input,EXHLA and SBUSRQ where applicable
+gen_mux_a37,generation_dependent,generation_dependent,tri_state,mode_valid_and_drive_permit,S0 or INTA
+gen_mux_a38,generation_dependent,generation_dependent,tri_state_or_open_collector,mode_valid_and_drive_permit,S1 or NOWAIT
+gen_mux_a39,generation_dependent,generation_dependent,tri_state,mode_valid_and_drive_permit,S2 or SALE
+gen_mux_a40,generation_dependent,generation_dependent,tri_state_or_open_collector,mode_valid_and_drive_permit,LOCK or MACS
+gen_mux_a42,generation_dependent,generation_dependent,tri_state,mode_valid_and_drive_permit,CPUENB
+gen_mux_b40,generation_dependent,generation_dependent,tri_state_or_open_collector,mode_valid_and_drive_permit,CPKILL or EXHRQ1
+gen_mux_b42,generation_dependent,generation_dependent,tri_state,mode_valid_and_drive_permit,RQGT or EXHLA1
+gen_mux_b47,generation_dependent,generation_dependent,tri_state_or_open_collector,mode_valid_and_drive_permit,HRQ or EXHRQ2
+gen_mux_b48,generation_dependent,generation_dependent,tri_state,mode_valid_and_drive_permit,DMAHLD or SBUSRQ
+power,n/a,n/a,n/a,not_switchable,GND and rails
+none,n/a,n/a,unknown,do_not_connect,V1 and V2 pending evidence

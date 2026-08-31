@@ -1,0 +1,9 @@
+profile,total_fpga_io,translated_cbus_channels,sn74lvc16245a_fitted,sn74lvc07a_fitted,provisional_grouping,decision
+io8_sync_min,35,31,3,1,"U1 address[15:0]; U2 data[7:0] plus host controls; U3 IORDY/selected IRQ; independent data/IORDY/IRQ enables",minimum still exceeds Nano
+io16_sync_min,44,40,3,1,"U1 address[15:0]; U2 data[15:0]; U3 host controls plus target/IRQ outputs; independent response enables",minimum only
+mem8_20bit_min,40,36,3,1,"U1 address[15:0]; U2 address[19:16] plus memory controls; U3 data[7:0] plus target outputs",minimum only
+target20_full,51,47,4,1,"Two input-side packages for address/control; one data package; one target/IRQ output package",supported
+target24_full,55,51,5,1,"Three input-side packages for 24-bit address/control; one data package; one target/IRQ output package",recommended passive target stuffing
+target24_dma,60,55,6,1,"target24_full plus separately enabled DMA input/tri-state groups; DRQ uses open drain and WORD has independent OE",optional stuffing
+target24_busmaster,64,56,6,1,"Two address packages; one data; bidirectional command/arbitration groups; target outputs; independent address/command/response controls",future 286+ optional stuffing
+target24_dma_busmaster,69,60,7,1,"Combined passive target selected DMA path and 286+ bus-master reserve; second LVC07 footprint may be DNP",physical mapping superset

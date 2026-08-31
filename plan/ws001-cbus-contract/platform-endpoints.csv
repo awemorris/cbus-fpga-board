@@ -1,0 +1,70 @@
+endpoint_index,endpoint,endpoint_kind,cbus_pin_or_selector,signal_8086,signal_286_plus,common_port,translator_group,fpga_pin_direction,electrical_path,introduced_by,notes
+1,cbus_ab_00,cbus_signal,A4,AB00,AB00,cbus_ab_i/o/oe_req[0],addr_lo,bidir,lvc_bidir,io8_sync_min,
+2,cbus_ab_01,cbus_signal,A5,AB01,AB01,cbus_ab_i/o/oe_req[1],addr_lo,bidir,lvc_bidir,io8_sync_min,
+3,cbus_ab_02,cbus_signal,A6,AB02,AB02,cbus_ab_i/o/oe_req[2],addr_lo,bidir,lvc_bidir,io8_sync_min,
+4,cbus_ab_03,cbus_signal,A7,AB03,AB03,cbus_ab_i/o/oe_req[3],addr_lo,bidir,lvc_bidir,io8_sync_min,
+5,cbus_ab_04,cbus_signal,A8,AB04,AB04,cbus_ab_i/o/oe_req[4],addr_lo,bidir,lvc_bidir,io8_sync_min,
+6,cbus_ab_05,cbus_signal,A9,AB05,AB05,cbus_ab_i/o/oe_req[5],addr_lo,bidir,lvc_bidir,io8_sync_min,
+7,cbus_ab_06,cbus_signal,A10,AB06,AB06,cbus_ab_i/o/oe_req[6],addr_lo,bidir,lvc_bidir,io8_sync_min,
+8,cbus_ab_07,cbus_signal,A12,AB07,AB07,cbus_ab_i/o/oe_req[7],addr_lo,bidir,lvc_bidir,io8_sync_min,
+9,cbus_ab_08,cbus_signal,A13,AB08,AB08,cbus_ab_i/o/oe_req[8],addr_lo,bidir,lvc_bidir,io8_sync_min,
+10,cbus_ab_09,cbus_signal,A14,AB09,AB09,cbus_ab_i/o/oe_req[9],addr_lo,bidir,lvc_bidir,io8_sync_min,
+11,cbus_ab_10,cbus_signal,A15,AB10,AB10,cbus_ab_i/o/oe_req[10],addr_lo,bidir,lvc_bidir,io8_sync_min,
+12,cbus_ab_11,cbus_signal,A16,AB11,AB11,cbus_ab_i/o/oe_req[11],addr_lo,bidir,lvc_bidir,io8_sync_min,
+13,cbus_ab_12,cbus_signal,A17,AB12,AB12,cbus_ab_i/o/oe_req[12],addr_lo,bidir,lvc_bidir,io8_sync_min,
+14,cbus_ab_13,cbus_signal,A18,AB13,AB13,cbus_ab_i/o/oe_req[13],addr_lo,bidir,lvc_bidir,io8_sync_min,
+15,cbus_ab_14,cbus_signal,A19,AB14,AB14,cbus_ab_i/o/oe_req[14],addr_lo,bidir,lvc_bidir,io8_sync_min,
+16,cbus_ab_15,cbus_signal,A20,AB15,AB15,cbus_ab_i/o/oe_req[15],addr_lo,bidir,lvc_bidir,io8_sync_min,
+17,cbus_ab_16,cbus_signal,A22,AB16,AB16,cbus_ab_i/o/oe_req[16],addr_hi,bidir,lvc_bidir,mem8_20bit_min,
+18,cbus_ab_17,cbus_signal,A23,AB17,AB17,cbus_ab_i/o/oe_req[17],addr_hi,bidir,lvc_bidir,mem8_20bit_min,
+19,cbus_ab_18,cbus_signal,A24,AB18,AB18,cbus_ab_i/o/oe_req[18],addr_hi,bidir,lvc_bidir,mem8_20bit_min,
+20,cbus_ab_19,cbus_signal,A25,AB19,AB19,cbus_ab_i/o/oe_req[19],addr_hi,bidir,lvc_bidir,mem8_20bit_min,
+21,cbus_ab_20,cbus_signal,A26,AB20,AB20,cbus_ab_i/o/oe_req[20],addr_hi,bidir,lvc_bidir,target24_full,
+22,cbus_ab_21,cbus_signal,A27,AB21,AB21,cbus_ab_i/o/oe_req[21],addr_hi,bidir,lvc_bidir,target24_full,
+23,cbus_ab_22,cbus_signal,A28,AB22,AB22,cbus_ab_i/o/oe_req[22],addr_hi,bidir,lvc_bidir,target24_full,
+24,cbus_ab_23,cbus_signal,A29,AB23,AB23,cbus_ab_i/o/oe_req[23],addr_hi,bidir,lvc_bidir,target24_full,
+25,cbus_db_00,cbus_signal,B4,DB00,DB00,cbus_db_i/o/oe_req[0],data,bidir,lvc_bidir,io8_sync_min,
+26,cbus_db_01,cbus_signal,B5,DB01,DB01,cbus_db_i/o/oe_req[1],data,bidir,lvc_bidir,io8_sync_min,
+27,cbus_db_02,cbus_signal,B6,DB02,DB02,cbus_db_i/o/oe_req[2],data,bidir,lvc_bidir,io8_sync_min,
+28,cbus_db_03,cbus_signal,B7,DB03,DB03,cbus_db_i/o/oe_req[3],data,bidir,lvc_bidir,io8_sync_min,
+29,cbus_db_04,cbus_signal,B8,DB04,DB04,cbus_db_i/o/oe_req[4],data,bidir,lvc_bidir,io8_sync_min,
+30,cbus_db_05,cbus_signal,B9,DB05,DB05,cbus_db_i/o/oe_req[5],data,bidir,lvc_bidir,io8_sync_min,
+31,cbus_db_06,cbus_signal,B10,DB06,DB06,cbus_db_i/o/oe_req[6],data,bidir,lvc_bidir,io8_sync_min,
+32,cbus_db_07,cbus_signal,B12,DB07,DB07,cbus_db_i/o/oe_req[7],data,bidir,lvc_bidir,io8_sync_min,
+33,cbus_db_08,cbus_signal,B13,DB08,DB08,cbus_db_i/o/oe_req[8],data,bidir,lvc_bidir,io16_sync_min,
+34,cbus_db_09,cbus_signal,B14,DB09,DB09,cbus_db_i/o/oe_req[9],data,bidir,lvc_bidir,io16_sync_min,
+35,cbus_db_10,cbus_signal,B15,DB10,DB10,cbus_db_i/o/oe_req[10],data,bidir,lvc_bidir,io16_sync_min,
+36,cbus_db_11,cbus_signal,B16,DB11,DB11,cbus_db_i/o/oe_req[11],data,bidir,lvc_bidir,io16_sync_min,
+37,cbus_db_12,cbus_signal,B17,DB12,DB12,cbus_db_i/o/oe_req[12],data,bidir,lvc_bidir,io16_sync_min,
+38,cbus_db_13,cbus_signal,B18,DB13,DB13,cbus_db_i/o/oe_req[13],data,bidir,lvc_bidir,io16_sync_min,
+39,cbus_db_14,cbus_signal,B19,DB14,DB14,cbus_db_i/o/oe_req[14],data,bidir,lvc_bidir,io16_sync_min,
+40,cbus_db_15,cbus_signal,B20,DB15,DB15,cbus_db_i/o/oe_req[15],data,bidir,lvc_bidir,io16_sync_min,
+41,cbus_ior_n,cbus_signal,A33,IOR0,IOR0,cbus_ior_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,io8_sync_min,
+42,cbus_iow_n,cbus_signal,A34,IOW0,IOW0,cbus_iow_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,io8_sync_min,
+43,cbus_mrc_n,cbus_signal,A35,MRC0,MRC0,cbus_mrc_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,mem8_20bit_min,
+44,cbus_mwc_n,cbus_signal,A36,MWC0,MWC0,cbus_mwc_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,mem8_20bit_min,
+45,cbus_mwe_n,cbus_signal,B45,MWE0,MWE0,cbus_mwe_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,mem8_20bit_min,
+46,cbus_bhe_n,cbus_signal,A44,BHE0,BHE0,cbus_bhe_n_i/o/oe_req,cmd_bidir,bidir,lvc_bidir,io16_sync_min,
+47,cbus_reset_n,cbus_signal,B34,RESET0,RESET0,cbus_reset_n_i,host_ctl_in,input,lvc_input,io8_sync_min,
+48,cbus_power_n,cbus_signal,A48,POWER0,POWER0,cbus_power_n_i,host_ctl_in,input,lvc_input,io8_sync_min,
+49,cbus_sclk,cbus_signal,A46,SCLK1,SCLK1,cbus_sclk_i,host_ctl_in,input,lvc_input,io8_sync_min,
+50,cbus_iordy,cbus_signal,A45,IORDY1,IORDY1,cbus_iordy_o,target_resp_ts,output,lvc_tristate_output,io8_sync_min,
+51,cbus_irq_selected,carrier_selected_signal,IRQ selector: B24/B25/B26/B27/B28/B29/B30,IR3/IR5/IR6/IR9/IR10|IR11/IR12/IR13,IR3/IR5/IR6/IR9/IR10/IR12/IR13,cbus_irq_assert,irq_selected,output,carrier_selects_tristate_or_open_drain_path,io8_sync_min,IRQ number and TS/OC output path remain a carrier setting; no IRQ pin is hard-coded in common IP.
+52,cbus_dack_selected_n,carrier_selected_signal,DACK selector: B35/B36,DACK0/DACK2|DACK3,DACK0/DACK3,cbus_dack_n_i,dma_in,input,carrier_selected_lvc_input,target24_dma,DMA channel/slot mapping remains a carrier setting.
+53,cbus_drq_selected_n,carrier_selected_signal,DRQ selector: B37/B38,DRQ0/DRQ2|DRQ3,DRQ0/DRQ3,cbus_drq_n_assert,dma_out_oc,output,carrier_selected_open_drain,target24_dma,DMA channel/slot mapping remains a carrier setting.
+54,cbus_word_n,cbus_signal,B39,WORD0,WORD0,cbus_word_n_o,dma_out_ts,output,lvc_tristate_output,target24_dma,
+55,cbus_dmatc_n,cbus_signal,B43,DMATC0,DMATC0,cbus_dmatc_n_i,dma_in,input,lvc_input,target24_dma,
+56,cbus_b40_exhrq1_n,cbus_signal,B40,CPKILL0,EXHRQ10,cbus_exhrq1_n_assert,gen_mux_b40,output,open_drain_286_plus,target24_busmaster,This profile reserves the 286+ EXHRQ1 use; 8086 CPKILL tri-state output needs a separate later profile/path.
+57,cbus_b47_exhrq2_n,cbus_signal,B47,HRQ00,EXHRQ20,cbus_exhrq2_n_assert,gen_mux_b47,output,open_drain_286_plus,target24_busmaster,This profile reserves the 286+ EXHRQ2 use; 8086 HRQ tri-state output needs a separate later profile/path.
+58,cbus_b42_exhla1_n,cbus_signal,B42,RQGT0,EXHLA10,cbus_exhla1_n_i,gen_mux_b42,input,lvc_input_286_plus,target24_busmaster,
+59,cbus_b46_exhla2_n,cbus_signal,B46,HLDA00,EXHLA20,cbus_exhla2_n_i,arb_in,input,lvc_input_286_plus,target24_busmaster,
+60,cbus_b48_sbusrq,cbus_signal,B48,DMAHLD0,SBUSRQ1,cbus_sbusrq_i,gen_mux_b48,input,lvc_input_286_plus,target24_busmaster,
+61,lvc_data_dir,lvc_control,n/a,n/a,n/a,safe_drive_if.data_dir,lvc_control,output,safe_oe_or_dir_control,io8_sync_min,Direction is separately controlled from OE.
+62,lvc_data_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.data_oe_n,lvc_control,output,safe_oe_or_dir_control,io8_sync_min,External pull-up makes configuration default High-Z.
+63,lvc_iordy_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.iordy_oe_n,lvc_control,output,safe_oe_or_dir_control,io8_sync_min,IORDY cycle window cannot share IRQ OE.
+64,lvc_irq_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.irq_oe_n,lvc_control,output,safe_oe_or_dir_control,io8_sync_min,Used only for a selected tri-state IRQ path; IR9 uses open drain.
+65,lvc_word_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.word_oe_n,lvc_control,output,safe_oe_or_dir_control,target24_dma,WORD has an independent DMA-active window.
+66,lvc_addr_dir,lvc_control,n/a,n/a,n/a,safe_drive_if.addr_dir,lvc_control,output,safe_oe_or_dir_control,target24_busmaster,Passive target default is host-to-FPGA.
+67,lvc_addr_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.addr_oe_n,lvc_control,output,safe_oe_or_dir_control,target24_busmaster,External pull-up makes configuration default High-Z.
+68,lvc_cmd_dir,lvc_control,n/a,n/a,n/a,safe_drive_if.cmd_dir,lvc_control,output,safe_oe_or_dir_control,target24_busmaster,Passive target default is host-to-FPGA.
+69,lvc_cmd_oe_n,lvc_control,n/a,n/a,n/a,safe_drive_if.cmd_oe_n,lvc_control,output,safe_oe_or_dir_control,target24_busmaster,External pull-up makes configuration default High-Z.

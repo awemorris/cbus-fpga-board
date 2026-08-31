@@ -1,0 +1,9 @@
+profile,address_pins,data_pins,bus_control_pins,response_pins,fpga_transceiver_control_pins,total_fpga_io,tang_gpio,margin,status,notes
+io8_sync_min,16,8,5,2,4,35,34,-1,insufficient,"IOR IOW RESET POWER SCLK; IORDY and one selected IRQ; data DIR/OE plus independent IORDY/IRQ OEs"
+io16_sync_min,16,16,6,2,4,44,34,-10,insufficient,"io8_sync_min plus DB8-15 and BHE"
+mem8_20bit_min,20,8,6,2,4,40,34,-6,insufficient,"MRC MWC MWE RESET POWER SCLK; IORDY and one selected IRQ"
+target20_full,20,16,9,2,4,51,34,-17,insufficient,"I/O and memory target with BHE"
+target24_full,24,16,9,2,4,55,34,-21,insufficient,"24-bit I/O and memory target with BHE"
+target24_dma,24,16,13,2,5,60,34,-26,insufficient,"target24_full plus one selected DRQ/DACK path WORD DMATC and independent WORD OE"
+target24_busmaster,24,16,14,2,8,64,34,-30,insufficient,"target24_full plus 286+ EXHRQ1/2 EXHLA1/2 SBUSRQ and address/command DIR/OE"
+target24_dma_busmaster,24,16,18,2,9,69,34,-35,insufficient,"Combined reserved endpoint superset for passive target one DMA path and 286+ bus master"

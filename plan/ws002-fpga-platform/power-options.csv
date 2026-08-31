@@ -1,0 +1,4 @@
+module,official_module_input,cbus_early_5v_limit,headroom_before_lvc_and_protection,cbus_later_5v_limit,headroom_before_lvc_and_protection,cbus_only_decision,auxiliary_decision
+Tang Nano 20K,"5 V input; official maximum module current not located",500 mA,unknown,800 mA,unknown,measurement required,"Keep keyed AUX_5V option"
+Tang Primer 20K,"5 V +/-10%; 0.5 A demand",500 mA,0 mA,800 mA,300 mA,"Not series-wide; provisional only on later 0.8 A slots after current test","Recommended for first carrier and required for early 0.5 A machines"
+Tang Mega 138K non-Pro,"5V0 at BTB; official SOM maximum current not located",500 mA,unknown,800 mA,unknown,"Do not approve without a measured current envelope","Required for prototype"
