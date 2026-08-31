@@ -34,7 +34,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 
 ## 4. 現在の状況
 
-- リポジトリとMWP-Q計画構造を作成した段階で、RTL、回路図、PCB、ファームウェアは未実装。
+- MWP-Q計画構造に加え、最初のboard非依存RTLとしてCバスI/O BFM、最小target engine、固定CSRを実装した。回路図、PCB、board top、constraint、AXI、ファームウェアは未実装。
 - CバスとFPGAの間にLVC系トランシーバを置く方針、AXI4を内部標準とする方針は合意済み。
 - Tangファミリを採用し、Primer 20KとMega 138K非Proを差し替え可能なboard targetとして扱う方針は合意済み。初回試作はPrimer推奨だが、共通IPはどちらにも依存させない。
 - 74LVC16245Aまたは74LVC162245Aは候補であり、電圧、方向、OE、電流、伝搬遅延、パッケージ、入手性の確認前には部品確定としない。
@@ -54,6 +54,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - `ws001p003`を完了した。8086-classから486/Pentiumまでを9 timing profile、93 parameter、6 cycle contractへ整理した。80286 12 MHzではSCLKをtiming基準にできず、共通targetは非同期captureを前提にする。V13は資料の直接対象外なので実測前には486/Pentium profileを互換保証に使わない。
 - 初期の設計・互換性試験・保証対象は386以降とする。8086/70116/80286固有差は記録のみ保持する。S001上では486/Pentiumも同じ後期型signal/cycle familyであり、parameter差として扱う。後続資料または実測でprotocol上の不連続が判明した場合は再検討する。
 - Queue完了時または切りのよい境界で、成果をcommitして`git push origin master`することがユーザから許可されている。
+- `ws003p001`を完了した。100 MHz内部clockで非同期I/O strobeを同期化し、一件の`cbus_req/cbus_rsp`へ変換するtarget MVPとID/version/scratch/status CSRを実装した。Icarus Verilog 12.0で8/16-bit lane、wait/timeout、無効/非選択、reset/platform abort、contention/Xを157 checks検証した。
 
 ## 5. 固定済みの主要設計判断
 
@@ -136,7 +137,7 @@ AXI4-Lite
 | --- | --- | --- | --- | --- | --- |
 | `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 次はp004 DMA/bus-master契約、または測定器準備後のp005実機互換性 | [WS001](ws001-cbus-contract/ws.md) |
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p001 completed) | MG001, MG002 | 次のQueueで共通IP top、二つのboard top、安全OE境界を具体化する | [WS002](ws002-fpga-platform/ws.md) |
-| `ws003` | Cバス・ターゲット/AXIブリッジ | planned | MG002 | BFMと最小ID CSRの契約を固める | [WS003](ws003-target-bridge/ws.md) |
+| `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p001 completed) | MG002 | 次はp002の非同期FIFOとAXI4-Lite bridge | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
 | `ws005` | メールボックス・割り込み | planned | MG003 | 最小レジスタ契約を確定する | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | DMAモード別の信号・安全条件を確定する | [WS006](ws006-dma-bus-master/ws.md) |

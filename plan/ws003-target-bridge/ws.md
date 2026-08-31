@@ -1,14 +1,14 @@
 # WS003: Cバス・ターゲット/AXIブリッジ
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws003`
 
-Status: planned
+Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: WS001の基本サイクル契約後、`ws003p001`のBFMと最小ターゲット仕様をQueueへ提案する。
+Resume point: `ws003p001`のBFM、最小target engine、固定CSRは完了した。次は`ws003p002`で非同期request/response FIFOとAXI4-Lite bridgeを計画する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
 
 ## Objective
 
@@ -40,7 +40,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| [`ws003p001`](phase001-bfm-target-mvp/phase.md) | planned after WS001 basic-cycle evidence | BFM、target engine、固定ID CSRで8/16-bit I/Oサイクルを検証する。 |
+| [`ws003p001`](phase001-bfm-target-mvp/phase.md) | completed | BFM、target engine、固定ID CSRで8/16-bit I/Oサイクルを検証する。 |
 | `ws003p002` | planned | CDC request/response FIFOとC-bus-to-AXI4-Liteブリッジを統合する。 |
 | `ws003p003` | planned | AXI4 interconnect、region guard、timeout、エラー記録を追加する。 |
 | `ws003p004` | proposed | 根拠が揃ったCバスメモリサイクルと連続アクセスを追加する。 |
