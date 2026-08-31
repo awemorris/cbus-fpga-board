@@ -8,11 +8,13 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws001p002`の共通69 endpointとPrimer/Mega mappingは完了した。次は`ws001p003`でI/O/メモリ/割り込みの世代別タイミング契約を具体化する。
+Resume point: `ws001p003`の受動targetタイミング契約は完了した。次のWS001内作業は`ws001p004`の従来DMA/外部バスマスタ契約、または実機と測定器を準備後の`ws001p005`互換性マトリクスである。WS003は今回の契約を使ってBFM/target MVPへ進める。
 
 ## Objective
 
 Cバスの信号、電気条件、転送タイミング、I/O・メモリ・DMA・バス所有権を、RTLと回路設計が参照できる検証可能な契約へ変換する。
+
+初期の設計・互換性試験・保証対象は386以降とする。古い世代は資料profileを保持するが、初期実装での対応条件にはしない。
 
 ## Scope
 
@@ -42,7 +44,7 @@ Cバスの信号、電気条件、転送タイミング、I/O・メモリ・DMA�
 | --- | --- | --- |
 | [`ws001p001`](phase001-evidence-baseline/phase.md) | completed | 出典と不確実性を含むCバス証拠台帳を作る。 |
 | [`ws001p002`](phase002-signal-matrix/phase.md) | completed | コネクタから論理RTLまでの信号・方向・電気マトリクスを確定する。 |
-| `ws001p003` | planned | I/O/メモリ/割り込みのサイクル表とタイミング契約を作る。 |
+| [`ws001p003`](phase003-timing-contract/phase.md) | completed | I/O/メモリ/割り込みのサイクル表とタイミング契約を作る。 |
 | `ws001p004` | proposed | 従来DMAと外部バスマスタの調停・転送契約を作る。 |
 | `ws001p005` | proposed | 対象PC-9800機種の互換性マトリクスと実測差分を管理する。 |
 

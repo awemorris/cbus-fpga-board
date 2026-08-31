@@ -1,0 +1,94 @@
+profile_id,cycle,parameter_id,nec_symbol,min_ns,max_ns,source_id,source_pages,status,notes
+all_profiles,clock,sclk_low_pulse,,,,S001,297,confirmed,SCLK nominal frequencyはtiming-profiles.csv参照
+all_profiles,wait,iordy_low_width,tCLRYW,40,7000,S001,"297,329",confirmed,Lowがwait要求; 7us以下
+later_cpu_common,wait,iordy_assert_deadline,tmRYD,,80,S001,329,confirmed,70116/70116H/70136A/286/386/486/Pentiumの全mode共通
+later_cpu_common,wait,iordy_release_setup,tCLRYS,30,,S001,329,confirmed,PC-98XAは37ns
+later_cpu_common,wait,iordy_active_setup,tCLRYH,8,,S001,329,confirmed,PC-98XAは11ns
+p98_5m_8086,io_read,command_active_delay,tCLIRL,14,74,S001,310,confirmed,IOR active
+p98_5m_8086,io_read,command_inactive_delay,tCLIRH,14,74,S001,310,confirmed,IOR inactive
+p98_5m_8086,io_read,read_data_setup,tDVCL,54,,S001,310,confirmed,cycle-end reference
+p98_5m_8086,io_read,read_data_hold,tCLDX,10,,S001,310,confirmed,cycle-end reference
+p98_5m_8086,io_write,command_active_delay,tCLIL,-70,74,S001,312,confirmed,IOW active
+p98_5m_8086,io_write,command_inactive_delay,tCLIH,14,74,S001,312,confirmed,IOW inactive
+p98_5m_8086,io_write,write_data_valid_delay,tCLDV,,122,S001,312,confirmed,host-driven data
+p98_5m_8086,io_write,write_data_hold,tCHDX,10,,S001,312,confirmed,host guarantee
+p98_8m_8086,io_read,command_active_delay,tCLIRL,80,138,S001,310,confirmed,IOR active
+p98_8m_8086,io_read,command_inactive_delay,tCLIRH,14,74,S001,310,confirmed,IOR inactive
+p98_8m_8086,io_read,read_data_setup,tDVCL,40,,S001,310,confirmed,cycle-end reference
+p98_8m_8086,io_read,read_data_hold,tCLDX,10,,S001,310,confirmed,cycle-end reference
+p98_8m_8086,io_write,command_active_delay,tCLIL,-43,74,S001,312,confirmed,IOW active
+p98_8m_8086,io_write,command_inactive_delay,tCLIH,14,74,S001,312,confirmed,IOW inactive
+p98_8m_8086,io_write,write_data_valid_delay,tCLDV,,72,S001,312,confirmed,host-driven data
+p98_8m_8086,io_write,write_data_hold,tCHDX,10,,S001,312,confirmed,host guarantee
+p98_8m_70116,io_read,address_valid_before_command,tIOADV,150,,S001,328,confirmed,AB15..1/AB0/BHE group
+p98_8m_70116,io_read,command_active_delay,tCLIOV,5,35,S001,328,confirmed,IOR/IOW asserted
+p98_8m_70116,io_read,read_data_deadline,tIORDS,,260,S001,328,confirmed,card-driven data
+p98_8m_70116,io_read,read_data_hold,tIORDH,3,,S001,328,confirmed,card-driven data
+p98_8m_70116,io_write,write_data_valid_before_command,tIOWDV,48,,S001,328,confirmed,host-driven data
+p98_8m_70116,io_write,write_data_hold,tIOWDX,26,,S001,328,confirmed,host guarantee
+p98_10m_70116,io_read,address_valid_before_command,tIOADV,115,,S001,328,confirmed,AB15..1/AB0/BHE group
+p98_10m_70116,io_read,command_active_delay,tCLIOV,5,35,S001,328,confirmed,IOR/IOW asserted
+p98_10m_70116,io_read,read_data_deadline,tIORDS,,287,S001,328,confirmed,card-driven data
+p98_10m_70116,io_read,read_data_hold,tIORDH,3,,S001,328,confirmed,card-driven data
+p98_10m_70116,io_write,write_data_valid_before_command,tIOWDV,26,,S001,328,confirmed,host-driven data
+p98_10m_70116,io_write,write_data_hold,tIOWDX,18,,S001,328,confirmed,host guarantee
+p98_8m_286_386,io_read,address_valid_before_command,tIOADV,115,,S001,327,confirmed,AB15..1; AB0/BHEはtIOEAV=111ns
+p98_8m_286_386,io_read,command_active_delay,tCLIOV,3,25,S001,327,confirmed,IOR/IOW asserted
+p98_8m_286_386,io_read,read_data_deadline,tIORDS,,270,S001,327,confirmed,card-driven data
+p98_8m_286_386,io_read,read_data_hold,tIORDH,5,,S001,327,confirmed,card-driven data
+p98_8m_286_386,io_write,write_data_valid_before_command,tIOWDV,67,,S001,327,confirmed,host-driven data
+p98_8m_286_386,io_write,write_data_hold,tIOWDX,23,,S001,327,confirmed,host guarantee
+p98_10m_286_386,io_read,address_valid_before_command,tIOADV,139,,S001,327,confirmed,PC-98XLは150ns
+p98_10m_286_386,io_read,command_active_delay,tCLIOV,3,21,S001,327,confirmed,IOR/IOW asserted
+p98_10m_286_386,io_read,read_data_deadline,tIORDS,,254,S001,327,confirmed,PC-98XLは312ns
+p98_10m_286_386,io_read,read_data_hold,tIORDH,5,,S001,327,confirmed,card-driven data
+p98_10m_286_386,io_write,write_data_valid_before_command,tIOWDV,140,,S001,327,confirmed,PC-98XLは151ns
+p98_10m_286_386,io_write,write_data_hold,tIOWDX,21,,S001,327,confirmed,PC-98XLは32ns
+p98_12m_286,io_read,address_valid_before_command,tIOADV,139,,S001,"321,327",confirmed,SCLKを基準にしてはならない
+p98_12m_286,io_read,read_data_deadline,tIORDS,,254,S001,"321,327",confirmed,SCLKを基準にしてはならない
+p98_12m_286,io_read,read_data_hold,tIORDH,5,,S001,"321,327",confirmed,SCLKを基準にしてはならない
+p98_12m_286,io_write,write_data_valid_before_command,tIOWDV,130,,S001,"321,327",confirmed,SCLKを基準にしてはならない
+p98_12m_286,io_write,write_data_hold,tIOWDX,21,,S001,"321,327",confirmed,SCLKを基準にしてはならない
+p98_16m_286_386,io_read,address_valid_before_command,tIOADV,115,,S001,327,confirmed,AB15..1; AB0/BHEは111ns
+p98_16m_286_386,io_read,command_active_delay,tCLIOV,3,25,S001,327,confirmed,IOR/IOW asserted
+p98_16m_286_386,io_read,read_data_deadline,tIORDS,,257,S001,327,confirmed,card-driven data
+p98_16m_286_386,io_read,read_data_hold,tIORDH,5,,S001,327,confirmed,card-driven data
+p98_16m_286_386,io_write,write_data_valid_before_command,tIOWDV,67,,S001,327,confirmed,host-driven data
+p98_16m_286_386,io_write,write_data_hold,tIOWDX,23,,S001,327,confirmed,host guarantee
+p98_486_pentium,io_read,address_valid_before_command,tIOADV,136,,S001,327,confirmed,AB15..1/AB0/BHE
+p98_486_pentium,io_read,command_active_delay,tCLIOV,3,21,S001,327,confirmed,拡張バス上; I/O拡張ユニット上は10..40ns
+p98_486_pentium,io_read,read_data_deadline,tIORDS,,239,S001,327,confirmed,card-driven data
+p98_486_pentium,io_read,read_data_hold,tIORDH,5,,S001,327,confirmed,card-driven data
+p98_486_pentium,io_write,write_data_valid_before_command,tIOWDV,140,,S001,327,confirmed,host-driven data
+p98_486_pentium,io_write,write_data_hold,tIOWDX,21,,S001,327,confirmed,host guarantee
+p98_8m_70116,memory_read,read_data_deadline,tmRDS,,300,S001,326,confirmed,card-driven data
+p98_8m_70116,memory_read,read_data_hold,tmRDH,3,,S001,326,confirmed,card-driven data
+p98_8m_70116,memory_write,write_data_valid_reference,tmWDV,-1,,S001,326,confirmed,NEC chart coordinate; absolute sampling pointへ未変換
+p98_8m_70116,memory_write,write_data_hold,tmWDX,23,,S001,326,confirmed,host guarantee
+p98_10m_70116,memory_read,read_data_deadline,tmRDS,,310,S001,326,confirmed,card-driven data
+p98_10m_70116,memory_read,read_data_hold,tmRDH,3,,S001,326,confirmed,card-driven data
+p98_10m_70116,memory_write,write_data_valid_reference,tmWDV,10,,S001,326,confirmed,NEC chart coordinate; absolute sampling pointへ未変換
+p98_10m_70116,memory_write,write_data_hold,tmWDX,15,,S001,326,confirmed,host guarantee
+p98_8m_286_386,memory_read,read_data_deadline,tmRDS,,203,S001,324,confirmed,normal memory cycle
+p98_8m_286_386,memory_read,read_data_hold,tmRDH,5,,S001,324,confirmed,card-driven data
+p98_8m_286_386,memory_write,write_data_valid_reference,tmWDV,,45,S001,324,confirmed,NEC chart coordinate
+p98_8m_286_386,memory_write,write_data_hold,tmWDX,15,,S001,324,confirmed,host guarantee
+p98_10m_286_386,memory_read,read_data_deadline,tmRDS,,160,S001,324,confirmed,normal memory cycle
+p98_10m_286_386,memory_read,read_data_hold,tmRDH,5,,S001,324,confirmed,card-driven data
+p98_10m_286_386,memory_write,write_data_valid_reference,tmWDV,,-4,S001,324,confirmed,負値はNEC chartの基準edge座標
+p98_10m_286_386,memory_write,write_data_hold,tmWDX,14,,S001,324,confirmed,host guarantee
+p98_12m_286,memory_read,read_data_deadline,tmRDS,,160,S001,"321,324",confirmed,SCLKを基準にしてはならない
+p98_12m_286,memory_read,read_data_hold,tmRDH,5,,S001,324,confirmed,card-driven data
+p98_12m_286,memory_write,write_data_valid_reference,tmWDV,,-4,S001,324,confirmed,負値はNEC chartの基準edge座標
+p98_12m_286,memory_write,write_data_hold,tmWDX,14,,S001,324,confirmed,host guarantee
+p98_16m_286_386,memory_read,read_data_deadline,tmRDS,,190,S001,324,confirmed,normal memory cycle
+p98_16m_286_386,memory_read,read_data_hold,tmRDH,5,,S001,324,confirmed,card-driven data
+p98_16m_286_386,memory_write,write_data_valid_reference,tmWDV,,45,S001,324,confirmed,NEC chart coordinate
+p98_16m_286_386,memory_write,write_data_hold,tmWDX,15,,S001,324,confirmed,host guarantee
+p98_486_pentium,memory_read,read_data_deadline,tmRDS,,145,S001,324,confirmed,normal memory cycle
+p98_486_pentium,memory_read,read_data_hold,tmRDH,5,,S001,324,confirmed,card-driven data
+p98_486_pentium,memory_write,write_data_valid_reference,tmWDV,,-4,S001,324,confirmed,一部機種は45ns
+p98_486_pentium,memory_write,write_data_hold,tmWDX,14,,S001,324,confirmed,host guarantee
+all_profiles,irq,host_int_response,tJHIH,,370,S001,"320-321",confirmed,IRQ正エッジからhost PIC INT応答までの資料上限; card pulse width規定ではない
+all_profiles,irq,request_low_pulse_before_positive_edge,,,,S001,296,unknown,正エッジ要求は確定; 必要Low幅はS001に定量規定なし
+external_cpu_only,interrupt_ack,inta0_timing,,,,S001,"298,303",deferred,受動cardへのackではなくws001p004の外部CPU契約

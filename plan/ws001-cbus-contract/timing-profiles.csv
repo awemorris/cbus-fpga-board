@@ -1,0 +1,10 @@
+profile_id,cpu_family,cpu_mode,sclk_nominal_mhz,sclk_cycle_ns,sclk_timing_reference,target_policy,source_id,source_pages,notes
+p98_5m_8086,8086-class,5MHz,4.9152,203.45,valid,record_only,S001,"297,308-312",PC-9801/E/F/M系5MHz表を代表とする
+p98_8m_8086,8086-class,8MHz,7.9872,125.20,valid,record_only,S001,"297,308-312",PC-9801E/F/M系8MHz表を代表とする
+p98_8m_70116,70116/70116H/70136A,8MHz,7.9872,125.20,valid,record_only,S001,"297,321,326,328-329",70116系8MHz
+p98_10m_70116,70116/70116H/70136A,10MHz,9.8304,101.73,valid,record_only,S001,"297,321,326,328-329",70116系10MHz
+p98_8m_286_386,80286/80386,8MHz,7.9872,125.20,valid,target_386_only,S001,"321-329",80386 16MHzは同じSCLK群; 80286は記録のみ
+p98_10m_286_386,80286/80386,"10/20MHz",9.8304,101.73,valid,target_386_only,S001,"321-329",80386 20MHzはtarget; 80286とPC-9801USは記録のみ
+p98_12m_286,80286,12MHz,9.8304,101.73,invalid_unsynchronized,record_only,S001,"321-329",SCLKはCPU clockと非同期でタイミング基準に使用不可
+p98_16m_286_386,80286/80386,16MHz,7.9872,125.20,valid,target_386_only,S001,"321-329",80386はtarget; 80286は記録のみ
+p98_486_pentium,80486/Pentium,not stated,9.8304,101.73,valid,target,S001,"321-329",後期target; PC-9801FAは80386 16MHz値を使用する例外

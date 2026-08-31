@@ -51,6 +51,9 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - Tang Mega 138K非ProはBank 2/3/4から保守的に144 GPIOを使用でき、同じ69 endpoint mapping後も75本残る。3個の0.4 mm BTBとSOM最大電流未確認のため工場実装carrierとする。Tang Nano 20K直結は不採用、外部CPLD案は別アーキテクチャとして条件付きとする。
 - NEC資料では初期機の+5 V上限が0.5 A/slot、後期機の多くが0.8 A/slotである。Primerの公式0.5 A要求は初期機上限と同値なので、シリーズ共通キャリアにはCバス+5 V既定に加え、排他選択・逆流/過電流保護を持つキー付き補助5 V入力を設ける方針を推奨する。PC側FDD接続は機種別交換ハーネスへ分離する。
 - `ws001p002`を完了した。共通`cbus_ip_top`用の69 endpointを、Primer SO-DIMMとMega BTBへ同じ順序で割り当てた。受動target、選択IRQ/DMA一経路、286以降型bus-master予約、安全DIR/OEを含み、Primerに17本、Megaに75本の保守的GPIOを残す。
+- `ws001p003`を完了した。8086-classから486/Pentiumまでを9 timing profile、93 parameter、6 cycle contractへ整理した。80286 12 MHzではSCLKをtiming基準にできず、共通targetは非同期captureを前提にする。V13は資料の直接対象外なので実測前には486/Pentium profileを互換保証に使わない。
+- 初期の設計・互換性試験・保証対象は386以降とする。8086/70116/80286固有差は記録のみ保持する。S001上では486/Pentiumも同じ後期型signal/cycle familyであり、parameter差として扱う。後続資料または実測でprotocol上の不連続が判明した場合は再検討する。
+- Queue完了時または切りのよい境界で、成果をcommitして`git push origin master`することがユーザから許可されている。
 
 ## 5. 固定済みの主要設計判断
 
@@ -64,6 +67,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - 初期のCPUキャッシュは無効、またはDMA共有領域を非キャッシュとし、整合性問題を後段へ持ち越さない。
 - Primer 20KとMega 138Kはboard固有top-level、constraint、platform/vendor wrapperだけを切り替える。Cバス/AXI/CSR/mailbox/DMA/user IP/将来RISC-Vはboard名を持たない共通`cbus_ip_top`以下へ置き、共通IP内にPrimer/Megaの条件コンパイルを持ち込まない。
 - board topは共通IPのOE requestをplatform ready、reset、clock lock、bus permitで追加gateし、configuration中は外付けpull-up等によりRTL非依存でLVCをHigh-Zにする。
+- 初期Cバス互換profileは386以降を対象とする。8086/70116/80286固有profileは調査記録として保持し、初期対応を強制しない。Pentium以降に後期型cycle familyとの不連続が見つかった場合はtarget engineの境界を再検討する。
 
 ## 6. 提案中の論理構成
 
@@ -130,7 +134,7 @@ AXI4-Lite
 
 | WSID | Workstream | Status | Milestones | Resume point | W書 |
 | --- | --- | --- | --- | --- | --- |
-| `ws001` | Cバス仕様・インターフェース契約 | in-progress (p002 completed) | MG001 | 次はp003のI/O/メモリ/割り込み世代別タイミング契約 | [WS001](ws001-cbus-contract/ws.md) |
+| `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 次はp004 DMA/bus-master契約、または測定器準備後のp005実機互換性 | [WS001](ws001-cbus-contract/ws.md) |
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p001 completed) | MG001, MG002 | 次のQueueで共通IP top、二つのboard top、安全OE境界を具体化する | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | planned | MG002 | BFMと最小ID CSRの契約を固める | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |

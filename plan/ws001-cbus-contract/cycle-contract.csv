@@ -1,0 +1,35 @@
+cycle_id,step,phase,observer,required_condition,card_action,card_drive,release_condition,source_id,source_pages,status,notes
+io_read,0,idle,card,"RESET0 inactive; platform_ready","decode disabled or no matching address",DB=Hi-Z;IORDY1=Hi-Z,always,S001,"295,297",confirmed,reset/config/clock-unreadyはplatform topで強制Hi-Z
+io_read,1,address,card,"AB[00:15] and BHE0 stable before IOR0","decode configured I/O address and byte lane",DB=Hi-Z;IORDY1=Hi-Z,IOR0 inactive,S001,"295,309-312,327-329",confirmed,24-bit address upper bitsはI/O cycleに使わない
+io_read,2,start,card,"IOR0 becomes Low and decode matches","latch request; choose profile independently of CPU core clock",DB=Hi-Z,IOR0 Low,S001,"295,309-312,327-329",confirmed,p98_12m_286ではSCLKをtiming基準にしない
+io_read,3,wait,card,"response cannot meet selected profile deadline","drive IORDY1 Low within profile window",IORDY1=Low,internal response ready or 7us limit,S001,"297,310-311,329",confirmed,Low幅は40ns以上7us以下; 不要なら終始Hi-Z
+io_read,4,data,card,"read response selected and transceiver safe","drive selected DB byte lane(s); meet read_data deadline",DB=valid,IOR0 rises,S001,"309-311,327-329",confirmed,選択外laneはHi-Z
+io_read,5,complete,card,"response ready; optional wait released with required setup","hold DB through command inactive edge",DB=valid,profile read_data_hold elapsed,S001,"309-311,327-329",confirmed,IORDY1はHighを駆動せずrelease/Hi-Zを基本とする
+io_read,6,release,card,"read_data_hold elapsed","disable DB output",DB=Hi-Z,immediate,S001,"309-311,327-329",confirmed,次cycle前に必ずHi-Z
+io_write,0,idle,card,"RESET0 inactive; platform_ready","decode disabled or no matching address",DB=input;IORDY1=Hi-Z,always,S001,"295,297",confirmed,DB出力は禁止
+io_write,1,address,card,"AB[00:15] and BHE0 stable before IOW0","decode configured I/O address and byte lane",DB=input,IOW0 inactive,S001,"295,311-312,327-329",confirmed,
+io_write,2,start,card,"IOW0 becomes Low and decode matches","latch request; retain DB as input",DB=input,IOW0 Low,S001,"295,311-312,327-329",confirmed,
+io_write,3,wait,card,"backend cannot accept before cycle end","drive IORDY1 Low within profile window",DB=input;IORDY1=Low,backend ready or 7us limit,S001,"297,311-312,329",confirmed,不要なら終始Hi-Z
+io_write,4,sample,card,"host write data stable in profile window","capture only selected DB byte lane(s)",DB=input,IOW0 rises,S001,"311-312,327-329",confirmed,内部sampling方式はWS003で検証; sourceのvalid/hold窓を侵食しない
+io_write,5,complete,card,"IOW0 High and captured transaction committed","release IORDY1 and retain DB input",DB=input;IORDY1=Hi-Z,immediate,S001,"311-312,327-329",confirmed,
+memory_read,0,idle,card,"RESET0 inactive; platform_ready","memory decode disabled or no match",DB=Hi-Z;IORDY1=Hi-Z,always,S001,"295,322-326",confirmed,
+memory_read,1,upper_address,card,"SALE1 active with AB[17:23]","latch upper address for full 24-bit decode",DB=Hi-Z,SALE1 inactive,S001,"295,304,322",confirmed,20-bit compatibility profileではupper decode policyを別設定する
+memory_read,2,address,card,"AB[00:16] and BHE0 stable","combine live lower address with latched upper address",DB=Hi-Z,MRC0 inactive,S001,"295,322-326",confirmed,
+memory_read,3,start,card,"MRC0 becomes Low and decode matches","latch request",DB=Hi-Z,MRC0 Low,S001,"295,322-326",confirmed,MACS0 generationはmemory mapping policyに従う
+memory_read,4,wait,card,"response cannot meet selected profile deadline","drive IORDY1 Low within profile window",IORDY1=Low,internal response ready or 7us limit,S001,"297,322-329",confirmed,
+memory_read,5,data,card,"memory read response selected","drive selected DB lane(s); meet tmRDS/tDVCL requirement",DB=valid,MRC0 rises,S001,"310,322-326",confirmed,profileによりreference edgeが異なる
+memory_read,6,hold,card,"MRC0 High","hold DB for profile read_data_hold",DB=valid,hold elapsed,S001,"310,322-326",confirmed,
+memory_read,7,release,card,"hold elapsed","disable DB output",DB=Hi-Z,immediate,S001,"310,322-326",confirmed,
+memory_write,0,idle,card,"RESET0 inactive; platform_ready","memory decode disabled or no match",DB=input;IORDY1=Hi-Z,always,S001,"295,322-326",confirmed,
+memory_write,1,upper_address,card,"SALE1 active with AB[17:23]","latch upper address",DB=input,SALE1 inactive,S001,"295,304,322",confirmed,
+memory_write,2,start,card,"MWC0 becomes Low and decode matches","latch request; use MWE0 as write timing qualifier",DB=input,MWC0/MWE0 inactive,S001,"295,322-326",confirmed,
+memory_write,3,wait,card,"backend cannot accept before cycle end","drive IORDY1 Low within profile window",DB=input;IORDY1=Low,backend ready or 7us limit,S001,"297,322-329",confirmed,
+memory_write,4,sample,card,"MWC0 Low; MWE0 Low; host data stable in profile window","capture selected DB lane(s)",DB=input,MWC0 or MWE0 rises,S001,"295,322-326",confirmed,MWE0を無視してMWC0だけで書込まない
+memory_write,5,hold,card,"write strobe inactive","retain captured value; DB remains input",DB=input,profile write_data_hold elapsed,S001,"322-326",confirmed,
+memory_write,6,complete,card,"hold elapsed","release IORDY1",DB=input;IORDY1=Hi-Z,immediate,S001,"322-329",confirmed,
+irq_request,0,idle,card,"selected IRQ resource configured and no request","keep selected IRQ electrically inactive",IRQ=Hi-Z,request pending,S001,"296,300-301",confirmed,IR91はopen collector; 他はtri-state
+irq_request,1,arm,card,"request pending and IRQ line/resource is safe","create Low state before positive edge",IRQ=Low,implementation-defined pulse interval,S001,296,provisional,S001は必要Low幅を定量規定しない
+irq_request,2,edge,card,"request remains pending","generate positive edge by release/high transition",IRQ=release/high,positive edge observed,S001,296,confirmed,IR91はopen-collector release; tri-state線のexact drive/release sequenceは電気検証待ち
+irq_request,3,host_response,host,"positive edge accepted","PIC propagates request to CPU",card output unchanged,software/service acknowledgement,S001,"296,320-321",confirmed,S001表のhost INT delay上限は370ns; card pulse幅ではない
+irq_request,4,clear,card,"device-specific clear/ack condition","return selected IRQ to inactive High-Z",IRQ=Hi-Z,next request,S001,296,provisional,doorbellのclear protocolはWS005で定義
+interrupt_ack_boundary,0,deferred,card,"INTA0 appears only in external CPU/bus ownership context","do not consume INTA0 in passive target engine",INTA0=Hi-Z,ws001p004,S001,"298,303",deferred,A37 generation-mux信号; 8086型ではS00
