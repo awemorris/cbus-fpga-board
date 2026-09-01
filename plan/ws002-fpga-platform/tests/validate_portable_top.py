@@ -29,6 +29,12 @@ def main() -> None:
     assert shell_instance.search(primer) and shell_instance.search(mega)
     assert ".CBUS_MBX_ENABLE(CBUS_MBX_ENABLE)" in primer
     assert ".CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE)" in primer
+    assert ".CBUS_MEM_ENABLE(CBUS_MEM_ENABLE)" in primer
+    assert ".CBUS_MEM_BASE(CBUS_MEM_BASE)" in primer
+    assert ".CBUS_MEM_ADDR_MASK(CBUS_MEM_ADDR_MASK)" in primer
+    assert ".AXIL_MEM_TARGET_BASE(AXIL_MEM_TARGET_BASE)" in primer
+    assert ".cbus_sale_i(1'b0)" in shell, "physical SALE must remain safely tied off"
+    assert "input  logic cbus_sale" not in shell, "SALE physical endpoint was added prematurely"
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in primer
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in mega
 

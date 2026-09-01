@@ -8,7 +8,7 @@ Status: in-progress (p005 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws005p005`でdefault-disabled Cバスalias、control fabric、mailbox/router共通IP統合を完了した。次は`ws003p004`のI/O/memory共通request完成後に、詳細化済み`ws005p004`のCバスI/O/memory range-write frontendを実装する。
+Resume point: `ws005p005`でdefault-disabled Cバスalias、control fabric、mailbox/router共通IP統合を完了し、`ws003p004`でI/O/memory共通requestも完成した。次は詳細化済み`ws005p004`のCバスI/O/memory range-write frontendをQueueへ提案できる。
 
 ## Objective
 

@@ -6,7 +6,7 @@
 
 ## 1. 境界
 
-`cbus_target_axil_subsystem`は、`cbus_target_engine`が生成する16-bit I/O requestをCバス側clock domainからAXI側clock domainへ搬送し、32-bit AXI4-Lite Manager transactionへ変換する。Primer/Megaのpin、PLL、DDR、Gowin primitiveには依存しない。
+`cbus_target_axil_subsystem`は、I/O/memory engineが生成するspace付き24-bit requestをCバス側clock domainからAXI側clock domainへ搬送し、32-bit AXI4-Lite Manager transactionへ変換する。Primer/Megaのpin、PLL、DDR、Gowin primitiveには依存しない。
 
 ## 2. Clockとreset
 
@@ -26,8 +26,9 @@ Request packet:
 | Field | Width | Meaning |
 | --- | ---: | --- |
 | `tag` | 8 | Cバス側でrequest受理ごとに増加する識別子 |
+| `space_memory` | 1 | 1=24-bit memory、0=16-bit I/O |
 | `write` | 1 | 1=write、0=read |
-| `addr` | 16 | `AB00`を含むCバスI/O address |
+| `addr` | 24 | `AB00`を含むCバスaddress。I/Oでは上位8 bit zero |
 | `wdata` | 16 | Cバスwrite data |
 | `be` | 2 | `{upper,lower}` byte enable |
 
@@ -60,6 +61,8 @@ Cバス側endpointはresponse FIFOを常にdrainする。response tagが現在�
 | `base+6` / `base+7` | `AXIL_BASE+0xc` | 同上 |
 
 変換式は `AXIL_BASE + (((cbus_addr & 0xfffe) - CBUS_BASE) << 1)` である。16-bit accessは`WSTRB=0011`、low byteは`0001`、odd-address high byteは`0010`とする。AXI data upper 16 bitはzeroで、readはlower 16 bitをCバスへ返す。
+
+memory spaceは自然なbyte addressを維持し、`AXIL_MEM_TARGET_BASE + ((cbus_addr & 0xfffffc) - (CBUS_MEM_BASE & 0xfffffc))`へ変換する。Cバスaddress bit 1が0ならAXI lower halfと`WSTRB[1:0]`、1ならupper halfと`WSTRB[3:2]`を使う。`CBUS_MEM_ENABLE=0`が既定で、Cバスbase/maskとAXI target baseは実機割当前のplaceholderである。
 
 ## 5. AXI4-Lite sequencing
 

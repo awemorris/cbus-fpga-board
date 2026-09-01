@@ -21,6 +21,7 @@ $repo_root/rtl/include/cbus_mailbox_regs_pkg.sv
 $repo_root/rtl/common/reset_sync.sv
 $repo_root/rtl/common/async_fifo.sv
 $repo_root/rtl/cbus/cbus_target_engine.sv
+$repo_root/rtl/cbus/cbus_memory_target_engine.sv
 $repo_root/rtl/cbus/cbus_req_rsp_cdc.sv
 $repo_root/rtl/axi/cbus_to_axil_bridge.sv
 $repo_root/rtl/cbus/cbus_target_axil_subsystem.sv

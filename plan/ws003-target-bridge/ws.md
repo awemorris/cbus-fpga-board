@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p006`まで完了し、CバスI/Oから共通System CSRまで自己検査済みである。`ws001p003`のmemory cycle根拠を入力に詳細化した`ws003p004`を、board-independent 24-bit memory target RTLの次Queueへ提案できる。実機I/O baseは未選定であり、`ws003p005`物理試作はIP-complete gate後へ延期する。
+Resume point: `ws003p004/p006`まで完了し、default-disabledの24-bit memory targetとCバスI/Oから共通System CSRまでを自己検査済みである。実memory/I/O baseと物理`SALE`は未選定であり、残る`ws003p005`物理試作はIP-complete gate後へ延期する。
 
 ## Objective
 
@@ -43,7 +43,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 | [`ws003p001`](phase001-bfm-target-mvp/phase.md) | completed | BFM、target engine、固定ID CSRで8/16-bit I/Oサイクルを検証する。 |
 | [`ws003p002`](phase002-cdc-axil-bridge/phase.md) | completed | CDC request/response FIFOとC-bus-to-AXI4-Liteブリッジを統合する。 |
 | [`ws003p003`](phase003-axil-guard-timeout/phase.md) | completed | AXI4-Lite protected route、region guard、timeout/quarantine、エラー記録を追加する。 |
-| [`ws003p004`](phase004-memory-target-rtl/phase.md) | planned; Queue提案可能 | default-disabledの24-bit Cバスメモリtargetと連続アクセスをboard-independent RTLで実装する。 |
+| [`ws003p004`](phase004-memory-target-rtl/phase.md) | completed | default-disabledの24-bit Cバスメモリtargetと連続アクセスをboard-independent RTLで実装する。 |
 | `ws003p005` | deferred until IP-complete gate | ユニバーサル基板上でID/CSRアクセスを実証する。 |
 | [`ws003p006`](phase006-system-csr/phase.md) | completed | AXI4-Lite System CSRを実装し共通IPへ統合する。 |
 

@@ -8,7 +8,7 @@ Phase ID: `p004`
 
 Combined ID: `ws003p004`
 
-Status: planned; ready for Queue proposal
+Status: completed
 
 Parent: [WS003](../ws.md)
 
@@ -111,14 +111,14 @@ Update候補:
 
 ## Work packages
 
-- [ ] 24-bit/spaceを持つ共通request contractを明文化し、既存I/O変換との後方互換を定める。
-- [ ] SALE address captureとmemory target engineを実装する。
-- [ ] default-disabled memory aperture decodeとparameter assertionを追加する。
-- [ ] MRC read、MWC+MWE write、lane、wait/timeout/abortをCDC/AXI routeへ統合する。
-- [ ] I/O-memory同時/overlapのinvalid処理とsticky観測を追加する。
-- [ ] wrapperへlogical SALEを安全tieで透過し、物理mappingを追加しない。
-- [ ] 単体、統合、既存回帰をIcarusで自己検査する。
-- [ ] SALE physical endpoint不足をWS001/WS002のphysical backlogへ同期する。
+- [x] 24-bit/spaceを持つ共通request contractを明文化し、既存I/O変換との後方互換を定める。
+- [x] SALE address captureとmemory target engineを実装する。
+- [x] default-disabled memory aperture decodeとparameter assertionを追加する。
+- [x] MRC read、MWC+MWE write、lane、wait/timeout/abortをCDC/AXI routeへ統合する。
+- [x] I/O-memory同時/overlapのinvalid処理とsticky観測を追加する。
+- [x] wrapperへlogical SALEを安全tieで透過し、物理mappingを追加しない。
+- [x] 単体、統合、既存回帰をIcarusで自己検査する。
+- [x] SALE physical endpoint不足をWS001/WS002のphysical backlogへ同期する。
 
 ## Verification plan
 
@@ -145,3 +145,17 @@ Update候補:
 - SALEの資料上のpolarity/timingが既存契約と矛盾する場合は推測せずWS001へ戻す。
 - 物理SALE pinがないことを理由にsimulationを省略せず、logical portとsafe tieまでで完了判定する。
 - 実memory base、DDR、multi-manager fabric、Gowin primitiveが必要になった場合は本Phaseを拡大せずWS004/WS002へ戻す。
+
+## Execution result
+
+2026-09-01に`Q20260901-015`で完了した。
+
+- `cbus_memory_target_engine`を追加し、active-high logical `SALE`で`AB[23:17]`を保持してcycle開始時の`AB[16:0]`と結合する24-bit read/write targetを実装した。
+- memory apertureは`CBUS_MEM_ENABLE=0`を既定とし、Cバスbase/maskと32-bit aligned AXI test target baseにalignment assertionを設けた。実アドレス割当は行っていない。
+- 共通CDC packetを`{tag, space_memory, write, addr24, wdata16, be2}`へ拡張し、既存I/O requestは上位zeroで後方互換を維持した。
+- memory addressは自然byte mappingとし、Cバスaddress bit 1でAXI lower/upper halfwordと`WSTRB[1:0]/[3:2]`を選択する。既存I/O registerのword-expanded mappingは変更していない。
+- I/O/memory engineを明示arbiterで共有CDC/tag/AXI guard routeへ接続し、同時strobe、MRC+write、MWE-only、`BE=00`を非駆動で拒否してsticky invalidへ反映した。
+- `cbus_ip_top`へlogical `cbus_sale_i`とmemory parameterを追加した。Primer/Megaの69 endpoint、CST、物理OEは変更せず、共通board shell内で`cbus_sale_i=0`へ固定した。
+- 新規BFMはmemory engine 618、CDC/AXI統合182、共通IP統合806の計1606 checksをPASSした。既存WS003 656 checksも不変で、WS003合計は2262 checksとなった。
+- WS002 3377、WS004 30、WS005 327を合わせたHDL合計5996 checks、ABI contract checks、WS001/WS002 validatorをPASSした。Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningはない。
+- 実memory base/size、物理`SALE` endpoint/LVC/CST、ROM/RAM競合回避、PnP/driver、DRAM/AXI4 Full、Gowin合成、回路図、PCB、実機は計画境界へ残した。

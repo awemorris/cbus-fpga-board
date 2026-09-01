@@ -98,6 +98,7 @@ sim/
 
 ## 7. 保留事項
 
+- `ws003p004`で追加したlogical `cbus_sale_i`は現行board shellで0へ固定している。A39のS2/SALE世代多重、LVC方向、selector、Primer pin、CSTをIP-complete gate後のphysical planningで決定すること。
 - 初回基板でbus-master用LVC/pinを実装済み、DNP、未配線のどれにするか。
 - Primer DDR controllerをいつ共通AXI境界へ接続するか。RISC-V優先度整理まではブロッカーにしない。
 - Gowin IDEでflat port/CSTを合成し、device版とtiming closureを確認すること。

@@ -9,7 +9,8 @@ module tb_cbus_mailbox_alias_bridge;
 
     logic req_valid, req_ready, req_write;
     logic [7:0] req_tag, rsp_tag;
-    logic [15:0] req_addr, req_wdata, rsp_rdata;
+    logic [23:0] req_addr;
+    logic [15:0] req_wdata, rsp_rdata;
     logic [1:0] req_be;
     logic rsp_valid, rsp_ready, rsp_error;
     logic [31:0] awaddr, wdata, araddr, rdata;
@@ -36,6 +37,7 @@ module tb_cbus_mailbox_alias_bridge;
     ) dut (
         .clk(clk), .rst_n(rst_n),
         .req_valid(req_valid), .req_ready(req_ready), .req_tag(req_tag),
+        .req_space_memory(1'b0),
         .req_write(req_write), .req_addr(req_addr), .req_wdata(req_wdata),
         .req_be(req_be), .rsp_valid(rsp_valid), .rsp_ready(rsp_ready),
         .rsp_tag(rsp_tag), .rsp_rdata(rsp_rdata), .rsp_error(rsp_error),
@@ -145,7 +147,7 @@ module tb_cbus_mailbox_alias_bridge;
             while (!req_ready) @(negedge clk);
             req_tag = req_tag + 1'b1;
             req_write = write_op;
-            req_addr = address;
+            req_addr = {8'h00, address};
             req_wdata = data;
             req_be = be;
             req_valid = 1'b1;
@@ -192,7 +194,7 @@ module tb_cbus_mailbox_alias_bridge;
         req_valid = 1'b0;
         req_tag = 8'h00;
         req_write = 1'b0;
-        req_addr = 16'h0;
+        req_addr = 24'h0;
         req_wdata = 16'h0;
         req_be = 2'b11;
         rsp_ready = 1'b1;

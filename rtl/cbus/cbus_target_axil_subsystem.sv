@@ -6,6 +6,10 @@ module cbus_target_axil_subsystem #(
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
     parameter bit          CBUS_MBX_ENABLE = 1'b0,
     parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
+    parameter bit          CBUS_MEM_ENABLE = 1'b0,
+    parameter logic [23:0] CBUS_MEM_BASE = 24'h000000,
+    parameter logic [23:0] CBUS_MEM_ADDR_MASK = 24'hffffff,
+    parameter logic [31:0] AXIL_MEM_TARGET_BASE = 32'h1000_0800,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000,
     parameter integer WAIT_ASSERT_CYCLES = 4,
     parameter integer TIMEOUT_CYCLES = 600,
@@ -19,10 +23,15 @@ module cbus_target_axil_subsystem #(
     input  logic        platform_ready,
 
     input  logic [15:0] cbus_addr_i,
+    input  logic [23:0] cbus_mem_addr_i,
     input  logic [15:0] cbus_data_i,
     input  logic        cbus_bhe_n_i,
     input  logic        cbus_ior_n_i,
     input  logic        cbus_iow_n_i,
+    input  logic        cbus_sale_i,
+    input  logic        cbus_mrc_n_i,
+    input  logic        cbus_mwc_n_i,
+    input  logic        cbus_mwe_n_i,
 
     output logic [15:0] cbus_data_o,
     output logic        cbus_data_oe_req,
@@ -57,21 +66,61 @@ module cbus_target_axil_subsystem #(
     output logic        m_axil_rready
 );
 
+    logic io_req_valid;
+    logic io_req_ready;
+    logic io_req_write;
+    logic [15:0] io_req_addr;
+    logic [15:0] io_req_wdata;
+    logic [1:0] io_req_be;
+    logic io_rsp_valid;
+    logic [15:0] io_rsp_rdata;
+    logic io_rsp_error;
+    logic io_busy;
+    logic io_timeout_sticky;
+    logic io_invalid_sticky;
+    logic io_backend_error_sticky;
+    logic io_abort_sticky;
+    logic [15:0] io_data_o;
+    logic io_data_oe;
+    logic io_iordy_oe;
+
+    logic mem_req_valid;
+    logic mem_req_ready;
+    logic mem_req_write;
+    logic [23:0] mem_req_addr;
+    logic [15:0] mem_req_wdata;
+    logic [1:0] mem_req_be;
+    logic mem_rsp_valid;
+    logic [15:0] mem_rsp_rdata;
+    logic mem_rsp_error;
+    logic mem_busy;
+    logic mem_timeout_sticky;
+    logic mem_invalid_sticky;
+    logic mem_backend_error_sticky;
+    logic mem_abort_sticky;
+    logic [15:0] mem_data_o;
+    logic mem_data_oe;
+    logic mem_iordy_oe;
+
     logic req_valid;
     logic req_ready;
+    logic req_space_memory;
     logic req_write;
-    logic [15:0] req_addr;
+    logic [23:0] req_addr;
     logic [15:0] req_wdata;
     logic [1:0] req_be;
     logic rsp_valid;
     logic [15:0] rsp_rdata;
     logic rsp_error;
+    logic active_owner_memory;
+    logic arbiter_conflict_sticky;
 
     logic a_req_valid;
     logic a_req_ready;
     logic [TAG_WIDTH-1:0] a_req_tag;
+    logic a_req_space_memory;
     logic a_req_write;
-    logic [15:0] a_req_addr;
+    logic [23:0] a_req_addr;
     logic [15:0] a_req_wdata;
     logic [1:0] a_req_be;
     logic a_rsp_valid;
@@ -81,6 +130,51 @@ module cbus_target_axil_subsystem #(
     logic a_rsp_error;
     logic c_rst_n;
     logic a_rst_n;
+
+    wire io_memory_conflict =
+        !cbus_mrc_n_i || !cbus_mwc_n_i || !cbus_mwe_n_i;
+    wire memory_io_conflict = !cbus_ior_n_i || !cbus_iow_n_i;
+
+    always_comb begin
+        req_valid = io_req_valid ^ mem_req_valid;
+        req_space_memory = mem_req_valid && !io_req_valid;
+        req_write = req_space_memory ? mem_req_write : io_req_write;
+        req_addr = req_space_memory ? mem_req_addr : {8'h00, io_req_addr};
+        req_wdata = req_space_memory ? mem_req_wdata : io_req_wdata;
+        req_be = req_space_memory ? mem_req_be : io_req_be;
+        io_req_ready = req_ready && io_req_valid && !mem_req_valid;
+        mem_req_ready = req_ready && mem_req_valid && !io_req_valid;
+
+        io_rsp_valid = rsp_valid && !active_owner_memory;
+        io_rsp_rdata = rsp_rdata;
+        io_rsp_error = rsp_error;
+        mem_rsp_valid = rsp_valid && active_owner_memory;
+        mem_rsp_rdata = rsp_rdata;
+        mem_rsp_error = rsp_error;
+
+        cbus_data_o = mem_data_oe ? mem_data_o : io_data_o;
+        cbus_data_oe_req = io_data_oe || mem_data_oe;
+        cbus_iordy_oe_req = io_iordy_oe || mem_iordy_oe;
+        busy = io_busy || mem_busy;
+        timeout_sticky = io_timeout_sticky || mem_timeout_sticky;
+        invalid_sticky = io_invalid_sticky || mem_invalid_sticky ||
+            arbiter_conflict_sticky;
+        backend_error_sticky = io_backend_error_sticky ||
+            mem_backend_error_sticky;
+        abort_sticky = io_abort_sticky || mem_abort_sticky;
+    end
+
+    always_ff @(posedge c_clk or negedge c_rst_n) begin
+        if (!c_rst_n) begin
+            active_owner_memory <= 1'b0;
+            arbiter_conflict_sticky <= 1'b0;
+        end else begin
+            if (req_valid && req_ready)
+                active_owner_memory <= req_space_memory;
+            if (io_req_valid && mem_req_valid)
+                arbiter_conflict_sticky <= 1'b1;
+        end
+    end
 
     reset_sync c_reset_sync (
         .clk(c_clk),
@@ -102,7 +196,7 @@ module cbus_target_axil_subsystem #(
         .WAIT_ASSERT_CYCLES(WAIT_ASSERT_CYCLES),
         .TIMEOUT_CYCLES(TIMEOUT_CYCLES),
         .RELEASE_HOLD_CYCLES(RELEASE_HOLD_CYCLES)
-    ) target_engine (
+    ) io_target_engine (
         .clk(c_clk),
         .rst_n(c_rst_n),
         .platform_ready(platform_ready),
@@ -111,23 +205,62 @@ module cbus_target_axil_subsystem #(
         .cbus_bhe_n_i(cbus_bhe_n_i),
         .cbus_ior_n_i(cbus_ior_n_i),
         .cbus_iow_n_i(cbus_iow_n_i),
-        .cbus_data_o(cbus_data_o),
-        .cbus_data_oe_req(cbus_data_oe_req),
-        .cbus_iordy_oe_req(cbus_iordy_oe_req),
-        .req_valid(req_valid),
-        .req_ready(req_ready),
-        .req_write(req_write),
-        .req_addr(req_addr),
-        .req_wdata(req_wdata),
-        .req_be(req_be),
-        .rsp_valid(rsp_valid),
-        .rsp_rdata(rsp_rdata),
-        .rsp_error(rsp_error),
-        .busy(busy),
-        .timeout_sticky(timeout_sticky),
-        .invalid_sticky(invalid_sticky),
-        .backend_error_sticky(backend_error_sticky),
-        .abort_sticky(abort_sticky)
+        .cbus_memory_conflict_i(io_memory_conflict),
+        .cbus_data_o(io_data_o),
+        .cbus_data_oe_req(io_data_oe),
+        .cbus_iordy_oe_req(io_iordy_oe),
+        .req_valid(io_req_valid),
+        .req_ready(io_req_ready),
+        .req_write(io_req_write),
+        .req_addr(io_req_addr),
+        .req_wdata(io_req_wdata),
+        .req_be(io_req_be),
+        .rsp_valid(io_rsp_valid),
+        .rsp_rdata(io_rsp_rdata),
+        .rsp_error(io_rsp_error),
+        .busy(io_busy),
+        .timeout_sticky(io_timeout_sticky),
+        .invalid_sticky(io_invalid_sticky),
+        .backend_error_sticky(io_backend_error_sticky),
+        .abort_sticky(io_abort_sticky)
+    );
+
+    cbus_memory_target_engine #(
+        .CBUS_MEM_ENABLE(CBUS_MEM_ENABLE),
+        .CBUS_MEM_BASE(CBUS_MEM_BASE),
+        .CBUS_MEM_ADDR_MASK(CBUS_MEM_ADDR_MASK),
+        .WAIT_ASSERT_CYCLES(WAIT_ASSERT_CYCLES),
+        .TIMEOUT_CYCLES(TIMEOUT_CYCLES),
+        .RELEASE_HOLD_CYCLES(RELEASE_HOLD_CYCLES)
+    ) memory_target_engine (
+        .clk(c_clk),
+        .rst_n(c_rst_n),
+        .platform_ready(platform_ready),
+        .cbus_addr_i(cbus_mem_addr_i),
+        .cbus_data_i(cbus_data_i),
+        .cbus_bhe_n_i(cbus_bhe_n_i),
+        .cbus_sale_i(cbus_sale_i),
+        .cbus_mrc_n_i(cbus_mrc_n_i),
+        .cbus_mwc_n_i(cbus_mwc_n_i),
+        .cbus_mwe_n_i(cbus_mwe_n_i),
+        .cbus_io_conflict_i(memory_io_conflict),
+        .cbus_data_o(mem_data_o),
+        .cbus_data_oe_req(mem_data_oe),
+        .cbus_iordy_oe_req(mem_iordy_oe),
+        .req_valid(mem_req_valid),
+        .req_ready(mem_req_ready),
+        .req_write(mem_req_write),
+        .req_addr(mem_req_addr),
+        .req_wdata(mem_req_wdata),
+        .req_be(mem_req_be),
+        .rsp_valid(mem_rsp_valid),
+        .rsp_rdata(mem_rsp_rdata),
+        .rsp_error(mem_rsp_error),
+        .busy(mem_busy),
+        .timeout_sticky(mem_timeout_sticky),
+        .invalid_sticky(mem_invalid_sticky),
+        .backend_error_sticky(mem_backend_error_sticky),
+        .abort_sticky(mem_abort_sticky)
     );
 
     cbus_req_rsp_cdc #(
@@ -138,6 +271,7 @@ module cbus_target_axil_subsystem #(
         .c_rst_n(c_rst_n),
         .c_req_valid(req_valid),
         .c_req_ready(req_ready),
+        .c_req_space_memory(req_space_memory),
         .c_req_write(req_write),
         .c_req_addr(req_addr),
         .c_req_wdata(req_wdata),
@@ -151,6 +285,7 @@ module cbus_target_axil_subsystem #(
         .a_req_valid(a_req_valid),
         .a_req_ready(a_req_ready),
         .a_req_tag(a_req_tag),
+        .a_req_space_memory(a_req_space_memory),
         .a_req_write(a_req_write),
         .a_req_addr(a_req_addr),
         .a_req_wdata(a_req_wdata),
@@ -168,6 +303,10 @@ module cbus_target_axil_subsystem #(
         .CBUS_IO_ADDR_MASK(IO_ADDR_MASK),
         .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
         .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
+        .CBUS_MEM_ENABLE(CBUS_MEM_ENABLE),
+        .CBUS_MEM_BASE(CBUS_MEM_BASE),
+        .CBUS_MEM_ADDR_MASK(CBUS_MEM_ADDR_MASK),
+        .AXIL_MEM_TARGET_BASE(AXIL_MEM_TARGET_BASE),
         .AXIL_BASE_ADDR(AXIL_BASE_ADDR)
     ) axil_bridge (
         .clk(a_clk),
@@ -175,6 +314,7 @@ module cbus_target_axil_subsystem #(
         .req_valid(a_req_valid),
         .req_ready(a_req_ready),
         .req_tag(a_req_tag),
+        .req_space_memory(a_req_space_memory),
         .req_write(a_req_write),
         .req_addr(a_req_addr),
         .req_wdata(a_req_wdata),

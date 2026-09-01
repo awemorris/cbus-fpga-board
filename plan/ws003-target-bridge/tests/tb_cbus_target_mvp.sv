@@ -61,6 +61,7 @@ module tb_cbus_target_mvp;
         .cbus_bhe_n_i(cbus_bhe_n),
         .cbus_ior_n_i(cbus_ior_n),
         .cbus_iow_n_i(cbus_iow_n),
+        .cbus_memory_conflict_i(1'b0),
         .cbus_data_o(target_data_o),
         .cbus_data_oe_req(target_data_oe),
         .cbus_iordy_oe_req(target_iordy_oe),

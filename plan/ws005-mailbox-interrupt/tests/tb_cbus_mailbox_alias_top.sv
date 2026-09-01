@@ -36,6 +36,7 @@ module tb_cbus_mailbox_alias_top;
         .cbus_mwe_n_i(1'b1), .cbus_mwe_n_o(), .cbus_mwe_n_oe_req(),
         .cbus_bhe_n_i(cbus_bhe_n_i), .cbus_bhe_n_o(), .cbus_bhe_n_oe_req(),
         .cbus_reset_n_i(1'b1), .cbus_power_n_i(1'b1), .cbus_sclk_i(1'b0),
+        .cbus_sale_i(1'b0),
         .cbus_iordy_o(), .cbus_iordy_oe_req(cbus_iordy_oe_req),
         .cbus_irq_assert(cbus_irq_assert), .cbus_dack_n_i(1'b1),
         .cbus_drq_n_assert(), .cbus_word_n_o(), .cbus_word_oe_req(),

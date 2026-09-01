@@ -29,6 +29,10 @@ The continuous monitor rejects host/target data contention, X on a driven data b
 
 For the 386-or-later target baseline, the BFM also checks no-wait read response within 239 ns, IORDY assertion within 80 ns, IORDY Low width from 40 ns through 7 us, and at least 5 ns of read-data hold after the external strobe rises.
 
+## `tb_cbus_memory_target`
+
+The standalone `ws003p004` memory-engine BFM checks the default-disabled instance continuously and exercises an enabled 24-bit aperture. It covers logical `SALE` upper-address capture and reset invalidation, inside/outside decode, address stability after cycle start, lower/upper/word lanes, back-to-back reads, `MWC+MWE` qualified writes, `MWC`-only and `MWE`-only suppression, `BE=00`, simultaneous memory strobes, I/O-memory conflicts, backend error, bounded timeout, early release, platform abort, reset, and recovery.
+
 ## `tb_async_fifo`
 
 The generic depth-four FIFO is exercised with unrelated 10 ns and 14 ns clocks. The test fills and drains the FIFO, checks full/empty behavior, wraps pointers through 48 ordered transfers with backpressure, and applies a coherent reset.
@@ -46,6 +50,10 @@ The `ws003p002` integration test connects the tri-state C-bus BFM through two as
 7. coherent reset, platform output gate, and post-reset recovery
 
 The C-bus and AXI models use unrelated 10 ns and 14 ns clocks. Continuous checks retain the contention, driven-X, write-drive, and reset/not-ready output safety rules.
+
+## `tb_cbus_memory_axil`
+
+The `ws003p004` integration BFM runs the I/O and memory engines through the shared arbiter, dual-clock CDC/tag path, and AXI4-Lite bridge. It verifies natural 24-bit memory mapping into lower/upper AXI halfwords, byte strobes, independent AW/W backpressure, I/O-memory back-to-back traffic and overlap rejection, out-of-aperture suppression, AXI error conversion, timeout/stale-response quarantine, coherent reset, and preservation of the existing I/O System CSR path.
 
 ## `tb_axil_guard_timeout`
 
@@ -70,3 +78,7 @@ invalid/unaligned `DECERR`, and coherent reset.
 ## `tb_cbus_guarded_axil`
 
 The end-to-end guard test uses unrelated 10 ns C-bus and 14 ns AXI clocks. It verifies normal ID/scratch access, an AXI response timeout that returns a C-bus backend error before the C-bus timeout, faulted local rejection without downstream leakage, subordinate reset plus fault clear, and coherent system-reset recovery.
+
+## `tb_cbus_memory_top`
+
+The common-IP integration test enables a 16-byte test aperture and maps it to the existing System CSR as a board-independent placeholder target. It proves logical `SALE` through `cbus_ip_top`, memory ID/scratch read/write, `MWC`-only non-commit, I/O compatibility, and passive address/command drive invariants. Production board shells still tie logical `SALE` low and add no physical endpoint.

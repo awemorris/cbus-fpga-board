@@ -8,6 +8,10 @@ module cbus_ip_top #(
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
     parameter bit          CBUS_MBX_ENABLE = 1'b0,
     parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
+    parameter bit          CBUS_MEM_ENABLE = 1'b0,
+    parameter logic [23:0] CBUS_MEM_BASE = 24'h000000,
+    parameter logic [23:0] CBUS_MEM_ADDR_MASK = 24'hffffff,
+    parameter logic [31:0] AXIL_MEM_TARGET_BASE = 32'h1000_0800,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000,
     parameter logic [31:0] AXIL_ALLOW_BASE_ADDR = 32'h1000_0000,
     parameter logic [31:0] AXIL_ALLOW_ADDR_MASK =
@@ -54,6 +58,7 @@ module cbus_ip_top #(
     input  logic cbus_reset_n_i,
     input  logic cbus_power_n_i,
     input  logic cbus_sclk_i,
+    input  logic cbus_sale_i,
 
     output logic cbus_iordy_o,
     output logic cbus_iordy_oe_req,
@@ -130,7 +135,11 @@ module cbus_ip_top #(
              ((32'h1000_3000 & AXIL_ALLOW_ADDR_MASK) !=
               (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK))))
             $fatal(1, "AXI guard must allow System CSR, interrupt and mailbox blocks");
-        if (CBUS_MBX_ENABLE &&
+        if (CBUS_MEM_ENABLE &&
+            ((AXIL_MEM_TARGET_BASE & AXIL_ALLOW_ADDR_MASK) !=
+             (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK)))
+            $fatal(1, "AXI guard must allow the memory target block");
+        if ((CBUS_MBX_ENABLE || CBUS_MEM_ENABLE) &&
             (((32'h8000_0000 & AXIL_ALLOW_ADDR_MASK) ==
               (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK)) ||
              ((32'h8100_0000 & AXIL_ALLOW_ADDR_MASK) ==
@@ -179,8 +188,8 @@ module cbus_ip_top #(
     // Reserved inputs are deliberately present at the stable boundary.  They
     // become live only in separately authorized memory/DMA/master phases.
     wire reserved_inputs_known =
-        cbus_mrc_n_i ^ cbus_mwc_n_i ^ cbus_mwe_n_i ^ cbus_reset_n_i ^
-        cbus_power_n_i ^ cbus_sclk_i ^ cbus_dack_n_i ^ cbus_dmatc_n_i ^
+        cbus_reset_n_i ^ cbus_power_n_i ^ cbus_sclk_i ^ cbus_dack_n_i ^
+        cbus_dmatc_n_i ^
         cbus_exhla1_n_i ^ cbus_exhla2_n_i ^ cbus_sbusrq_i;
 
     cbus_target_guarded_axil_subsystem #(
@@ -188,6 +197,10 @@ module cbus_ip_top #(
         .IO_ADDR_MASK(IO_ADDR_MASK),
         .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
         .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
+        .CBUS_MEM_ENABLE(CBUS_MEM_ENABLE),
+        .CBUS_MEM_BASE(CBUS_MEM_BASE),
+        .CBUS_MEM_ADDR_MASK(CBUS_MEM_ADDR_MASK),
+        .AXIL_MEM_TARGET_BASE(AXIL_MEM_TARGET_BASE),
         .AXIL_BASE_ADDR(AXIL_BASE_ADDR),
         .AXIL_ALLOW_BASE_ADDR(AXIL_ALLOW_BASE_ADDR),
         .AXIL_ALLOW_ADDR_MASK(AXIL_ALLOW_ADDR_MASK),
@@ -205,10 +218,15 @@ module cbus_ip_top #(
         .guard_status_clear(guard_status_clear),
         .guard_fault_clear(guard_fault_clear),
         .cbus_addr_i(cbus_ab_i[15:0]),
+        .cbus_mem_addr_i(cbus_ab_i),
         .cbus_data_i(cbus_db_i),
         .cbus_bhe_n_i(cbus_bhe_n_i),
         .cbus_ior_n_i(cbus_ior_n_i),
         .cbus_iow_n_i(cbus_iow_n_i),
+        .cbus_sale_i(cbus_sale_i),
+        .cbus_mrc_n_i(cbus_mrc_n_i),
+        .cbus_mwc_n_i(cbus_mwc_n_i),
+        .cbus_mwe_n_i(cbus_mwe_n_i),
         .cbus_data_o(cbus_db_o),
         .cbus_data_oe_req(cbus_db_oe_req),
         .cbus_iordy_oe_req(cbus_iordy_oe_req),

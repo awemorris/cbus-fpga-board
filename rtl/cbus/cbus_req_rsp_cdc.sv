@@ -10,8 +10,9 @@ module cbus_req_rsp_cdc #(
 
     input  logic                   c_req_valid,
     output logic                   c_req_ready,
+    input  logic                   c_req_space_memory,
     input  logic                   c_req_write,
-    input  logic [15:0]            c_req_addr,
+    input  logic [23:0]            c_req_addr,
     input  logic [15:0]            c_req_wdata,
     input  logic [1:0]             c_req_be,
 
@@ -26,8 +27,9 @@ module cbus_req_rsp_cdc #(
     output logic                   a_req_valid,
     input  logic                   a_req_ready,
     output logic [TAG_WIDTH-1:0]   a_req_tag,
+    output logic                   a_req_space_memory,
     output logic                   a_req_write,
-    output logic [15:0]            a_req_addr,
+    output logic [23:0]            a_req_addr,
     output logic [15:0]            a_req_wdata,
     output logic [1:0]             a_req_be,
 
@@ -38,7 +40,7 @@ module cbus_req_rsp_cdc #(
     input  logic                   a_rsp_error
 );
 
-    localparam integer REQ_WIDTH = TAG_WIDTH + 35;
+    localparam integer REQ_WIDTH = TAG_WIDTH + 44;
     localparam integer RSP_WIDTH = TAG_WIDTH + 17;
 
     logic [TAG_WIDTH-1:0] next_tag;
@@ -54,7 +56,8 @@ module cbus_req_rsp_cdc #(
     logic                 rsp_tag_matches;
 
     assign req_w_data = {
-        next_tag, c_req_write, c_req_addr, c_req_wdata, c_req_be
+        next_tag, c_req_space_memory, c_req_write, c_req_addr,
+        c_req_wdata, c_req_be
     };
 
     async_fifo #(
@@ -75,7 +78,8 @@ module cbus_req_rsp_cdc #(
 
     assign a_req_valid = req_r_valid;
     assign {
-        a_req_tag, a_req_write, a_req_addr, a_req_wdata, a_req_be
+        a_req_tag, a_req_space_memory, a_req_write, a_req_addr,
+        a_req_wdata, a_req_be
     } = req_r_data;
 
     assign rsp_w_data = {a_rsp_tag, a_rsp_error, a_rsp_rdata};

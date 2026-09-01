@@ -29,6 +29,10 @@ compile_and_run tb_cbus_target_mvp \
     "$repo_root/rtl/cbus/cbus_target_regs.sv" \
     "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_target_mvp.sv"
 
+compile_and_run tb_cbus_memory_target \
+    "$repo_root/rtl/cbus/cbus_memory_target_engine.sv" \
+    "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_memory_target.sv"
+
 compile_and_run tb_async_fifo \
     "$repo_root/rtl/common/async_fifo.sv" \
     "$repo_root/plan/ws003-target-bridge/tests/tb_async_fifo.sv"
@@ -38,10 +42,22 @@ compile_and_run tb_cbus_axil_bridge \
     "$repo_root/rtl/common/reset_sync.sv" \
     "$repo_root/rtl/common/async_fifo.sv" \
     "$repo_root/rtl/cbus/cbus_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_memory_target_engine.sv" \
     "$repo_root/rtl/cbus/cbus_req_rsp_cdc.sv" \
     "$repo_root/rtl/axi/cbus_to_axil_bridge.sv" \
     "$repo_root/rtl/cbus/cbus_target_axil_subsystem.sv" \
     "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_axil_bridge.sv"
+
+compile_and_run tb_cbus_memory_axil \
+    "$repo_root/rtl/include/cbus_mailbox_regs_pkg.sv" \
+    "$repo_root/rtl/common/reset_sync.sv" \
+    "$repo_root/rtl/common/async_fifo.sv" \
+    "$repo_root/rtl/cbus/cbus_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_memory_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_req_rsp_cdc.sv" \
+    "$repo_root/rtl/axi/cbus_to_axil_bridge.sv" \
+    "$repo_root/rtl/cbus/cbus_target_axil_subsystem.sv" \
+    "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_memory_axil.sv"
 
 compile_and_run tb_axil_guard_timeout \
     "$repo_root/rtl/axi/axil_guard_timeout.sv" \
@@ -56,9 +72,31 @@ compile_and_run tb_cbus_guarded_axil \
     "$repo_root/rtl/common/reset_sync.sv" \
     "$repo_root/rtl/common/async_fifo.sv" \
     "$repo_root/rtl/cbus/cbus_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_memory_target_engine.sv" \
     "$repo_root/rtl/cbus/cbus_req_rsp_cdc.sv" \
     "$repo_root/rtl/axi/cbus_to_axil_bridge.sv" \
     "$repo_root/rtl/cbus/cbus_target_axil_subsystem.sv" \
     "$repo_root/rtl/axi/axil_guard_timeout.sv" \
     "$repo_root/rtl/cbus/cbus_target_guarded_axil_subsystem.sv" \
     "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_guarded_axil.sv"
+
+compile_and_run tb_cbus_memory_top \
+    "$repo_root/rtl/include/cbus_mailbox_regs_pkg.sv" \
+    "$repo_root/rtl/common/reset_sync.sv" \
+    "$repo_root/rtl/common/async_fifo.sv" \
+    "$repo_root/rtl/cbus/cbus_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_memory_target_engine.sv" \
+    "$repo_root/rtl/cbus/cbus_req_rsp_cdc.sv" \
+    "$repo_root/rtl/axi/cbus_to_axil_bridge.sv" \
+    "$repo_root/rtl/cbus/cbus_target_axil_subsystem.sv" \
+    "$repo_root/rtl/axi/axil_guard_timeout.sv" \
+    "$repo_root/rtl/cbus/cbus_target_guarded_axil_subsystem.sv" \
+    "$repo_root/rtl/axi/axil_control_fabric_1x3.sv" \
+    "$repo_root/rtl/ip/axil_system_csr.sv" \
+    "$repo_root/rtl/ip/mailbox_sync_fifo.sv" \
+    "$repo_root/rtl/ip/axil_interrupt_router.sv" \
+    "$repo_root/rtl/ip/axil_mailbox.sv" \
+    "$repo_root/rtl/ip/mailbox_interrupt_subsystem.sv" \
+    "$repo_root/rtl/ip/cbus_control_subsystem.sv" \
+    "$repo_root/rtl/ip/cbus_ip_top.sv" \
+    "$repo_root/plan/ws003-target-bridge/tests/tb_cbus_memory_top.sv"

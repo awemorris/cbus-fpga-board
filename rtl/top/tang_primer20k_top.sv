@@ -6,7 +6,11 @@ module tang_primer20k_top #(
     // status wrapper and carrier safety latch replace this raw-clock shell.
     parameter bit ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0,
     parameter bit CBUS_MBX_ENABLE = 1'b0,
-    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
+    parameter bit CBUS_MEM_ENABLE = 1'b0,
+    parameter logic [23:0] CBUS_MEM_BASE = 24'h000000,
+    parameter logic [23:0] CBUS_MEM_ADDR_MASK = 24'hffffff,
+    parameter logic [31:0] AXIL_MEM_TARGET_BASE = 32'h1000_0800
 ) (
     input  logic board_clk,
     inout  wire [23:0] cbus_ab,
@@ -27,7 +31,11 @@ module tang_primer20k_top #(
 
     cbus_board_shell #(
         .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
-        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE)
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
+        .CBUS_MEM_ENABLE(CBUS_MEM_ENABLE),
+        .CBUS_MEM_BASE(CBUS_MEM_BASE),
+        .CBUS_MEM_ADDR_MASK(CBUS_MEM_ADDR_MASK),
+        .AXIL_MEM_TARGET_BASE(AXIL_MEM_TARGET_BASE)
     ) shell (
         .cbus_logic_clk(board_clk), .axi_clk(board_clk),
         .power_good(cbus_power_n), .config_done(test_enable),

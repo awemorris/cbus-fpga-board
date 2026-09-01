@@ -2,11 +2,11 @@
 
 最終更新: 2026-09-01
 
-対象Phase: [`ws003p001`](phase001-bfm-target-mvp/phase.md)
+対象Phase: [`ws003p001`](phase001-bfm-target-mvp/phase.md)、[`ws003p004`](phase004-memory-target-rtl/phase.md)
 
 ## 1. 境界
 
-`cbus_target_engine`は非同期なCバスI/O cycleを内部clock domainの一件のrequestへ正規化する。MVPではAXI、CDC FIFO、memory cycleを含めず、`cbus_target_regs`を同期backendとして接続する。Primer/Megaのpin、PLL、LVC primitiveを参照しない。
+`cbus_target_engine`と`cbus_memory_target_engine`は、非同期なCバスI/O/memory cycleを内部clock domainの一件の共通requestへ正規化する。I/O engineの既存16-bit portは維持し、共有arbiterで`space=I/O`と上位zeroの24-bit addressへ拡張する。memory engineは`SALE`で保持した上位7 bitとcycle開始時の`AB[16:0]`を結合する。Primer/Megaのpin、PLL、LVC primitiveを参照しない。
 
 ## 2. Request
 
@@ -14,12 +14,13 @@
 | --- | --- |
 | `req_valid` | request fieldsが有効。`req_ready`と同時Highのclock edgeで受理される。 |
 | `req_ready` | backendがrequestを受理可能。 |
-| `req_write` | 1=I/O write、0=I/O read。 |
-| `req_addr[15:0]` | CバスI/O address。`AB00`をbit 0に保持する。 |
+| `req_space_memory` | 1=24-bit memory、0=16-bit I/O。CDC packet以降で明示する。 |
+| `req_write` | 選択spaceに対して1=write、0=read。 |
+| `req_addr[23:0]` | `AB00`をbit 0に保持する。I/Oは`{8'h00, io_addr}`、memoryはSALE保持値を含む24-bit address。 |
 | `req_wdata[15:0]` | write cycleでcaptureしたDB。 |
 | `req_be[1:0]` | `{upper,lower}`。`upper=~BHE0`、`lower=~AB00`。`00`は不正。 |
 
-`req_valid`は受理まで保持する。一つのCバスcycleにつき最大一requestとし、outstandingは一件に限定する。
+`req_valid`は受理まで保持する。一つのCバスcycleにつき最大一requestとし、outstandingは一件に限定する。I/Oとmemory strobeが重なる場合は両engineを電気的にsilentにしてrequestを発行せず、sticky invalidを残す。arbiterはwire-ORせず、競合しない一方だけをCDCへ渡す。
 
 ## 3. Response
 
@@ -39,6 +40,9 @@ MVP直結portにtagはないため、同期backendは順序を変えず一件だ
 - timeout時はIORDYを解放し、readでは`16'hffff`を返し、sticky statusを立てて永久waitを避ける。
 - `platform_ready`低下またはresetはactive cycleをabortし、RTL stateに依存せずOE requestを即時gateする。
 - 物理board topはこれらのrequestをさらにreset、clock lock、bus permitでgateする。
+- `CBUS_MEM_ENABLE=0`では`SALE/MRC/MWC/MWE`がrequest、DB OE、IORDY OEを生成しない。
+- memory readは`MRC`だけ、memory writeは同一cycleの`MWC+MWE`だけでrequestを生成する。`MWC`だけではcommitしない。
+- memory upper address latchはresetまたは`platform_ready=0`で無効化し、次のlogical active-high `SALE` pulseまでmemory cycleへ応答しない。
 
 ## 5. CSR map
 

@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: board-independent IPを先に完成させる方針により、次は詳細化済み`ws001p004`の従来DMA/外部バスマスタ契約を調査Queueへ提案できる。実機と測定器を要する`ws001p005`互換性マトリクスはIP-complete gate後へ延期する。
+Resume point: board-independent IPを先に完成させる方針により、次は詳細化済み`ws001p004`の従来DMA/外部バスマスタ契約を調査Queueへ提案できる。`ws003p004`でlogical `SALE` memory targetは完了したが、A39世代多重endpointのphysical mapping/capabilityは未解決である。実機と測定器を要する`ws001p005`互換性マトリクスと合わせてIP-complete gate後へ延期する。
 
 ## Objective
 

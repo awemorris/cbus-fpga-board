@@ -7,6 +7,10 @@ module cbus_to_axil_bridge #(
     parameter logic [15:0] CBUS_IO_ADDR_MASK = 16'hfff8,
     parameter bit          CBUS_MBX_ENABLE = 1'b0,
     parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
+    parameter bit          CBUS_MEM_ENABLE = 1'b0,
+    parameter logic [23:0] CBUS_MEM_BASE = 24'h000000,
+    parameter logic [23:0] CBUS_MEM_ADDR_MASK = 24'hffffff,
+    parameter logic [31:0] AXIL_MEM_TARGET_BASE = 32'h1000_0800,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000
 ) (
     input  logic                   clk,
@@ -15,8 +19,9 @@ module cbus_to_axil_bridge #(
     input  logic                   req_valid,
     output logic                   req_ready,
     input  logic [TAG_WIDTH-1:0]   req_tag,
+    input  logic                   req_space_memory,
     input  logic                   req_write,
-    input  logic [15:0]            req_addr,
+    input  logic [23:0]            req_addr,
     input  logic [15:0]            req_wdata,
     input  logic [1:0]             req_be,
 
@@ -70,12 +75,16 @@ module cbus_to_axil_bridge #(
     logic [1:0] diag_ack_current;
 
     wire request_is_system =
-        ((req_addr & CBUS_IO_ADDR_MASK) ==
+        !req_space_memory &&
+        ((req_addr[15:0] & CBUS_IO_ADDR_MASK) ==
          (CBUS_IO_BASE_ADDR & CBUS_IO_ADDR_MASK));
-    wire request_is_mailbox = CBUS_MBX_ENABLE &&
-        ((req_addr & 16'hffe0) == (CBUS_MBX_IO_BASE & 16'hffe0));
+    wire request_is_mailbox = !req_space_memory && CBUS_MBX_ENABLE &&
+        ((req_addr[15:0] & 16'hffe0) == (CBUS_MBX_IO_BASE & 16'hffe0));
+    wire request_is_memory = req_space_memory && CBUS_MEM_ENABLE &&
+        ((req_addr & CBUS_MEM_ADDR_MASK) ==
+         (CBUS_MEM_BASE & CBUS_MEM_ADDR_MASK));
     wire [4:0] alias_offset =
-        (req_addr - CBUS_MBX_IO_BASE) & 16'h001e;
+        (req_addr[15:0] - CBUS_MBX_IO_BASE) & 16'h001e;
 
     function automatic [31:0] translate_system_addr(
         input [15:0] cbus_addr
@@ -86,6 +95,19 @@ module cbus_to_axil_bridge #(
                 {16'h0000, (cbus_addr & 16'hfffe)} -
                 {16'h0000, (CBUS_IO_BASE_ADDR & 16'hfffe)};
             translate_system_addr = AXIL_BASE_ADDR + (byte_offset << 1);
+        end
+    endfunction
+
+    function automatic [31:0] translate_memory_addr(
+        input [23:0] cbus_addr
+    );
+        logic [23:0] byte_offset;
+        begin
+            byte_offset =
+                (cbus_addr & 24'hfffffc) -
+                (CBUS_MEM_BASE & 24'hfffffc);
+            translate_memory_addr =
+                AXIL_MEM_TARGET_BASE + {8'h00, byte_offset};
         end
     endfunction
 
@@ -136,6 +158,12 @@ module cbus_to_axil_bridge #(
     initial begin
         if (CBUS_MBX_ENABLE && (CBUS_MBX_IO_BASE[4:0] != 5'b00000))
             $fatal(1, "CBUS_MBX_IO_BASE must be 32-byte aligned");
+        if (CBUS_MEM_BASE[1:0] != 2'b00)
+            $fatal(1, "CBUS_MEM_BASE must be 32-bit aligned");
+        if ((CBUS_MEM_BASE & ~CBUS_MEM_ADDR_MASK) != 24'h000000)
+            $fatal(1, "CBUS_MEM_BASE must be aligned to CBUS_MEM_ADDR_MASK");
+        if (AXIL_MEM_TARGET_BASE[1:0] != 2'b00)
+            $fatal(1, "AXIL_MEM_TARGET_BASE must be 32-bit aligned");
     end
 
     always_comb begin
@@ -187,6 +215,22 @@ module cbus_to_axil_bridge #(
                         if (req_be == 2'b00) begin
                             rsp_error <= 1'b1;
                             state <= ST_RESULT;
+                        end else if (request_is_memory) begin
+                            if (req_write) begin
+                                m_axil_awaddr <= translate_memory_addr(req_addr);
+                                if (req_addr[1]) begin
+                                    m_axil_wdata <= {req_wdata, 16'h0000};
+                                    m_axil_wstrb <= {req_be, 2'b00};
+                                end else begin
+                                    m_axil_wdata <= {16'h0000, req_wdata};
+                                    m_axil_wstrb <= {2'b00, req_be};
+                                end
+                                state <= ST_WRITE_SEND;
+                            end else begin
+                                m_axil_araddr <= translate_memory_addr(req_addr);
+                                read_upper_half <= req_addr[1];
+                                state <= ST_READ_ADDR;
+                            end
                         end else if (request_is_mailbox) begin
                             if (alias_offset == 5'h1c) begin
                                 if (req_write) begin
@@ -239,12 +283,12 @@ module cbus_to_axil_bridge #(
                             end
                         end else if (request_is_system) begin
                             if (req_write) begin
-                                m_axil_awaddr <= translate_system_addr(req_addr);
+                                m_axil_awaddr <= translate_system_addr(req_addr[15:0]);
                                 m_axil_wdata <= {16'h0000, req_wdata};
                                 m_axil_wstrb <= {2'b00, req_be};
                                 state <= ST_WRITE_SEND;
                             end else begin
-                                m_axil_araddr <= translate_system_addr(req_addr);
+                                m_axil_araddr <= translate_system_addr(req_addr[15:0]);
                                 state <= ST_READ_ADDR;
                             end
                         end else begin

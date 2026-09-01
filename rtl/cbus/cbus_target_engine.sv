@@ -19,6 +19,7 @@ module cbus_target_engine #(
     input  logic        cbus_bhe_n_i,
     input  logic        cbus_ior_n_i,
     input  logic        cbus_iow_n_i,
+    input  logic        cbus_memory_conflict_i,
 
     output logic [15:0] cbus_data_o,
     output logic        cbus_data_oe_req,
@@ -85,11 +86,13 @@ module cbus_target_engine #(
     end
 
     always_comb begin
-        cbus_data_oe_req = rst_n && platform_ready && data_oe_internal && !cycle_write;
-        cbus_iordy_oe_req = rst_n && platform_ready && iordy_oe_internal && !raw_active_strobe_n;
+        cbus_data_oe_req = rst_n && platform_ready && data_oe_internal &&
+            !cycle_write && !cbus_memory_conflict_i;
+        cbus_iordy_oe_req = rst_n && platform_ready && iordy_oe_internal &&
+            !raw_active_strobe_n && !cbus_memory_conflict_i;
         req_valid =
             rst_n && platform_ready && req_valid_internal &&
-            !raw_active_strobe_n;
+            !raw_active_strobe_n && !cbus_memory_conflict_i;
         busy = state != ST_IDLE;
     end
 
@@ -153,7 +156,8 @@ module cbus_target_engine #(
                     hold_cycles <= 0;
 
                     if (bus_armed && (ior_fall || iow_fall)) begin
-                        if (!ior_n && !iow_n) begin
+                        if (cbus_memory_conflict_i ||
+                            (!ior_n && !iow_n)) begin
                             invalid_sticky <= 1'b1;
                             state <= ST_IGNORE;
                         end else if (!selected) begin
@@ -175,7 +179,13 @@ module cbus_target_engine #(
 
                 ST_ISSUE: begin
                     elapsed_cycles <= elapsed_cycles + 1;
-                    if (active_strobe_n || raw_active_strobe_n) begin
+                    if (cbus_memory_conflict_i) begin
+                        req_valid_internal <= 1'b0;
+                        iordy_oe_internal <= 1'b0;
+                        invalid_sticky <= 1'b1;
+                        abort_sticky <= 1'b1;
+                        state <= ST_IGNORE;
+                    end else if (active_strobe_n || raw_active_strobe_n) begin
                         req_valid_internal <= 1'b0;
                         iordy_oe_internal <= 1'b0;
                         abort_sticky <= 1'b1;
@@ -200,7 +210,14 @@ module cbus_target_engine #(
 
                 ST_WAIT_RSP: begin
                     elapsed_cycles <= elapsed_cycles + 1;
-                    if (active_strobe_n || (raw_active_strobe_n && !data_oe_internal)) begin
+                    if (cbus_memory_conflict_i) begin
+                        iordy_oe_internal <= 1'b0;
+                        data_oe_internal <= 1'b0;
+                        invalid_sticky <= 1'b1;
+                        abort_sticky <= 1'b1;
+                        state <= ST_IGNORE;
+                    end else if (active_strobe_n ||
+                                 (raw_active_strobe_n && !data_oe_internal)) begin
                         iordy_oe_internal <= 1'b0;
                         abort_sticky <= 1'b1;
                         state <= ST_IDLE;
@@ -247,7 +264,7 @@ module cbus_target_engine #(
                     data_oe_internal <= 1'b0;
                     iordy_oe_internal <= 1'b0;
                     req_valid_internal <= 1'b0;
-                    if (ior_n && iow_n)
+                    if (ior_n && iow_n && !cbus_memory_conflict_i)
                         state <= ST_IDLE;
                 end
 

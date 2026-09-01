@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: Tang Primer 20Kを唯一のprimary hardware targetとする。board-independent IP完成を優先するため、Gowin production wrapper、外付けOE/電源回路、`ws002p003`段階立上げはIP-complete gate後へ延期する。Mega 138KはIP参照回帰だけを保ち、測定器なしではCバス接続試験を開始しない。
+Resume point: Tang Primer 20Kを唯一のprimary hardware targetとする。board-independent IP完成を優先するため、Gowin production wrapper、外付けOE/電源回路、A39 `SALE`の世代selector/LVC/pin、`ws002p003`段階立上げはIP-complete gate後へ延期する。現行69 endpoint/CSTは`cbus_sale_i=0`のsafe tieを維持する。Mega 138KはIP参照回帰だけを保ち、測定器なしではCバス接続試験を開始しない。
 
 ## Objective
 
