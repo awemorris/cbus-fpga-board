@@ -41,7 +41,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - Cバスの正式な信号集合、DMA調停、タイミング、機種差は一次資料と実機で検証が必要。
 - 初期実機環境はPC-9821V13、x86ラボ`CB-U04`、Tang Primer 20Kである。Tang Nano 20Kは34 GPIOというI/O不足により製品platformから外し、Mega 138Kも製造ボード対象から外す。互換目標はV13固有ではなくPC-9800シリーズ全般であり、20-bit/24-bitアドレス、8/16-bitデータ、信号多重化などの世代差を明示して設計する。
 - 現時点で専用測定器はなく、HDL検証には`iverilog`を利用できる。実測が必要な項目は未確認として分離する。
-- RISC-Vコア設計は優先順位の再整理まで後回しとし、先行Workstreamのブロッカーにしない。
+- 開発順序をboard-independent RTL/IP優先へ変更した。RISC-V SoCの要件定義、reference SoC、Cバスメモリtarget、DMA/bus-master BFMを物理基板より先に進め、IP全体が完成するまでPrimer回路、ユニバーサル基板試作、DDR実機wrapperを後回しにする。
 - `ws001p001`を完了し、Cバス系列資料とV13/Tang公式資料に基づく証拠台帳を作成した。現在はV13を初期実機候補に留め、PC-9800各世代の電気・電源・タイミングとスロット別多重信号を未確認IDで管理する。
 - `ws001p002`でCバス全100端子と世代差を機械可読化した。AB00-AB23は8086型/286以降型の両方に存在するが、20-bit互換と24-bitフルデコードの扱いが異なる。
 - Tang Nano 20Kの露出GPIOは34本である。独立したIORDY/IRQ OEを含めると8-bit I/O最小構成でも35本となり、1本不足する。この判断点はPrimer 20Kをprimary board targetに採用することで解消した。Nano直結は製品platformに含めない。
@@ -61,7 +61,9 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - `ws003p006`を完了した。共通IP内に四wordのAXI4-Lite System CSRを統合し、ID/version/capability、byte-strobe scratch、Cバス/guard status summaryを実装した。Primer/Mega topのCバス8-byte窓から同じCSRを読書きでき、現在のHDL回帰4033 checksをPASSした。guard fault clearは遮断済みCバス経路へ置かず、独立管理経路の後続課題とした。
 - `ws005p001`を完了した。H2C/C2Hを各8-entry×32-bit FIFO、doorbellを1-bit coalescing pending、interruptをCPU/host別mask/W1CとするABI v1を固定した。31 register、17 event、16のCバス相対aliasをJSONからSV/C/Rustへ生成し、24 contract checksをPASSした。物理IRQ番号、I/O base、RISC-Vは未決定のままである。
 - `ws005p002`を完了した。同期FIFO core、独立AXI4-Lite mailbox/router、二つのsubordinate portを接続するboard-independent subsystemを実装した。FIFO境界表25 checksと31 register、event routing、W1C/mask/set-wins、doorbell coalescing、AXI backpressure/error/resetの91 checksをPASSし、既存HDL 4033 checksとABI 24 checksに回帰がない。共通IP/AXI fabric/Cバスalias統合は後続`ws005p005`に残す。
-- 初回ユニバーサル基板試作用として、ユーザがx86ラボ`CB-U04`を購入した。入手後に表裏パターン、カードエッジ処理、+5 V/GND引出し、Cバス端子からlandへの導通を確認する。
+- 初回ユニバーサル基板試作用として、ユーザがx86ラボ`CB-U04`を購入した。現物は保全し、IP-complete gate後に表裏パターン、カードエッジ処理、+5 V/GND引出し、Cバス端子からlandへの導通を確認する。
+- `ws001p004`、`ws003p004`、`ws004p001`を実行可能なP書へ詳細化した。従来DMA/bus-master契約、default-disabledの24-bit memory target、RISC-V SoC IP要件を、回路図・PCB・DDR・実機を待たずに進められる。
+- SALEはWS001 signal matrix上のA39世代多重信号だが、現行69 endpoint/board topには未収容である。memory target RTLではlogical `cbus_sale_i`と安全tieまでを扱い、Primerのpin/LVC/CST追加はIP-complete gate後の物理planningへ残す。
 
 ## 5. 固定済みの主要設計判断
 
@@ -78,6 +80,8 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - Primer 20Kをprimary hardware targetとし、Mega 138Kは共通IPのreference targetに限定する。Cバス/AXI/CSR/mailbox/DMA/user IP/将来RISC-Vはboard名を持たない共通`cbus_ip_top`以下へ置き、共通IP内にPrimer/Megaの条件コンパイルを持ち込まない。Mega reference topのelaboration/ABI回帰は維持するが、Mega用回路図・PCB・PCBA・実機保証は作成しない。
 - board topは共通IPのOE requestをplatform ready、reset、clock lock、bus permitで追加gateし、configuration中は外付けpull-up等によりRTL非依存でLVCをHigh-Zにする。
 - 初期Cバス互換profileは386以降を対象とする。8086/70116/80286固有profileは調査記録として保持し、初期対応を強制しない。Pentium以降に後期型cycle familyとの不連続が見つかった場合はtarget engineの境界を再検討する。
+- 実装順はboard-independent IP完成を優先する。IP-complete gateまでは、共通Cバスtarget/memory、control fabric、RISC-V reference SoC、mailbox/IRQ、DMA/bus-master論理経路、user IP ABIをsimulationで統合し、実基板に依存する`ws002p003`、`ws003p005`、`ws004p003`、`ws006p003/p005`、WS008を実行Queueへ入れない。
+- IP-complete gateは「物理pin、Gowin primitive、実DDRを除く共通IPがsafe-defaultで統合され、Icarus回帰、ABI/validator、behavioral memory上のRISC-V診断、DMA/bus-master BFMがPASSした状態」とする。実機High-Z、電気、timing、DDR性能、互換性はgate後の別acceptanceであり、gate達成を実機完成とはみなさない。
 
 ## 6. 提案中の論理構成
 
@@ -144,30 +148,50 @@ AXI4-Lite
 
 | WSID | Workstream | Status | Milestones | Resume point | W書 |
 | --- | --- | --- | --- | --- | --- |
-| `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 次はp004 DMA/bus-master契約、または測定器準備後のp005実機互換性 | [WS001](ws001-cbus-contract/ws.md) |
-| `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed) | MG001, MG002 | 次はGowin production wrapperと外付け安全回路を具体化し、測定環境準備後にp003立上げ | [WS002](ws002-fpga-platform/ws.md) |
-| `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | System CSRは完了。p004はメモリcycle根拠後、p005は試作hardware後 | [WS003](ws003-target-bridge/ws.md) |
-| `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
+| `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 詳細化済みp004 DMA/bus-master契約を調査し、p005実測はIP-complete gate後 | [WS001](ws001-cbus-contract/ws.md) |
+| `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed; physical deferred) | MG001, MG002 | production wrapper、外付け回路、p003試作はIP-complete gate後 | [WS002](ws002-fpga-platform/ws.md) |
+| `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | 詳細化済みp004 memory target RTLを先行し、p005実機はgate後 | [WS003](ws003-target-bridge/ws.md) |
+| `ws004` | AXI SoC・RISC-V・DRAMランタイム | planned (p001 detailed) | MG003 | p001 RISC-V SoC要件からreference memory上のCPU/bootへ進み、DDRはgate後 | [WS004](ws004-soc-runtime/ws.md) |
 | `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | p005は詳細化済み。default-disabled Cバスalias/AXI decoder/共通IP統合のQueue提案が可能 | [WS005](ws005-mailbox-interrupt/ws.md) |
-| `ws006` | DMA・Cバスバスマスタ | planning | MG004 | DMAモード別の信号・安全条件を確定する | [WS006](ws006-dma-bus-master/ws.md) |
+| `ws006` | DMA・Cバスバスマスタ | planning | MG004 | ws001p004後に従来DMA/bus-master BFM、WS004 reference memory後にlocal DMAを進める | [WS006](ws006-dma-bus-master/ws.md) |
 | `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
-| `ws008` | 専用PCB・製造・頒布 | proposed | MG002, MG006 | 入手後のCB-U04を調査し、ユニバーサル基板試作の結果を反映する | [WS008](ws008-production-board/ws.md) |
+| `ws008` | 専用PCB・製造・頒布 | proposed (deferred) | MG002, MG006 | IP-complete gate後にCB-U04調査、ユニバーサル試作、専用PCBへ進む | [WS008](ws008-production-board/ws.md) |
 
 ## 12. 依存関係
 
 ```text
-WS001 bus contract
-  +-- WS002 electrical/platform safety
-  |     +-- WS003 target bridge MVP
-  |     |     +-- WS005 mailbox/interrupt
-  |     |     +-- WS004 SoC/runtime
-  |     |           +-- WS006 DMA/bus master
-  |     |           +-- WS007 user IP SDK
-  |     +-- WS008 universal prototype -> production PCB
-  +-- WS006 legacy DMA and bus-master protocol evidence
+Board-independent IP lane:
+  WS001 target + DMA/master contracts
+    +-- WS003 I/O + memory target RTL
+    |     +-- WS005 mailbox/interrupt + C-bus alias
+    |     +-- WS004 RISC-V requirements -> AXI fabric -> reference SoC
+    |             +-- WS006 local DMA + legacy DMA/master BFM
+    |             +-- WS007 user IP ABI/SDK
+    +-- WS006 legacy DMA/master protocol RTL
 
-Verification evidence is produced inside every Workstream and is consumed by WS008.
+  All required IP/ABI/BFM integrated and verified
+    +-- IP-complete gate
+
+Physical lane after gate:
+  WS002 production wrapper/electrical prototype
+    +-- WS003 real-machine target proof
+    +-- WS004 Primer DDR wrapper
+    +-- WS006 real-machine DMA/master proof
+    +-- WS008 CB-U04 prototype -> production PCB
+
+Verification evidence is produced inside every Workstream and is consumed by the gate and WS008.
 ```
+
+### IP-complete gateまでの優先順
+
+1. `ws004p001`でRISC-V SoC要件とcore選定基準を確定し、並行可能な調査として`ws001p004`でDMA/bus-master契約を確定する。
+2. `ws003p004`の24-bit memory targetと`ws005p005`のmailbox alias/control fabric統合を、safe-defaultのboard-independent RTLとして実装する。
+3. p001の結果から`ws004p002` AXI interconnectと`ws004p004` CPU/ROM/BRAM reference SoCを詳細化・実装する。
+4. `ws006p002`従来DMA、`ws006p004`bus owner/master、`ws006p001`local DMAをBFM/reference memoryで検証する。
+5. WS007のuser IP ABI/SDKと統合回帰を完成し、IP-complete gateを判定する。
+6. gate後にだけ`ws002p003`、`ws003p005`、`ws004p003`、`ws006p003/p005`、WS008を再開する。
+
+各行は新しいQueueの自動承認を意味しない。依存が満たされた有限のPhaseだけをQueue案として提示する。
 
 ## 13. 未解決の人間判断
 

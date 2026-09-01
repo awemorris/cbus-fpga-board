@@ -8,7 +8,7 @@ Status: proposed
 
 Parent: [master plan](../master.md)
 
-Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。入手後に外形、表裏パターン、カードエッジ処理、+5 V/GND、全100端子のland導通を調べ、ユニバーサル基板MVPへ使用できるか確定する。
+Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。現物情報は保全するが、board-independent IPとreference SoCが完成するIP-complete gateまでは基板設計・試作を開始しない。gate後に外形、表裏pattern、card edge、電源、全100端子land導通を調べる。
 
 ## Objective
 
@@ -34,7 +34,7 @@ Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。�
 
 ## Dependencies
 
-- WS001〜WS007の凍結済みインターフェース、試験証拠、bitstream、BOM。
+- WS001〜WS007のboard-independent IP/ABI完成と凍結済みinterface、試験証拠、bitstream、BOM。
 - ユーザによる頒布数量、目標原価、実装範囲、保証/サポート方針の判断。
 
 ## Prototype hardware on hand / ordered
@@ -47,12 +47,12 @@ Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。�
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| `ws008p001` | planned after ws002p003/ws003p005 | ユニバーサル基板試作の問題・測定・改版要件を固定する。 |
-| `ws008p002` | planned | 専用PCB Rev.Aの回路図、layout、DFM、製造ファイルをレビューする。 |
-| `ws008p003` | planned | 少数PCBAを発注し、受入・電気・機械・機能試験を行う。 |
-| `ws008p004` | planned | 対象PC-9800互換性、長時間、更新失敗、ESD/取扱リスクを検証する。 |
-| `ws008p005` | proposed | BOM、組立、出荷試験、文書、ライセンスを含むpilot頒布判定を行う。 |
-| `ws008p006` | proposed | pilot結果をRev.Bと継続頒布判断へ反映する。 |
+| `ws008p001` | deferred after IP-complete gate and ws002p003/ws003p005 | ユニバーサル基板試作の問題・測定・改版要件を固定する。 |
+| `ws008p002` | deferred after p001 | 専用PCB Rev.Aの回路図、layout、DFM、製造ファイルをレビューする。 |
+| `ws008p003` | deferred after p002 | 少数PCBAを発注し、受入・電気・機械・機能試験を行う。 |
+| `ws008p004` | deferred after p003 | 対象PC-9800互換性、長時間、更新失敗、ESD/取扱リスクを検証する。 |
+| `ws008p005` | deferred after p004 | BOM、組立、出荷試験、文書、ライセンスを含むpilot頒布判定を行う。 |
+| `ws008p006` | deferred after p005 | pilot結果をRev.Bと継続頒布判断へ反映する。 |
 
 ## Cost model
 

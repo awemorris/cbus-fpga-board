@@ -184,8 +184,8 @@
 | --- | --- | --- |
 | `ws001p002` 信号マトリクス | completed | 全100端子、共通69 endpoint、Primer/Mega connector mapping、I/O予算、安全OEを検証済み。 |
 | `ws001p003` 基本サイクル | Queue提案可能 | S001のI/O/メモリタイムチャートを世代別BFMベースラインへ変換できる。全機種共通タイミングは未確定として保持する。 |
-| `ws001p004` DMA/バスマスタ | 調査のみ開始可能 | 一般契約は存在するが、V13のチャネル割当・外部調停互換性・安全な実測手段が不足する。実装Queueへは入れない。 |
-| `ws001p005` 互換性マトリクス | 開始可能 | PC-9821V13の完全型番確定を最初の入力とする。 |
+| `ws001p004` DMA/バスマスタ | research Queue提案可能 | P書を詳細化済み。family-level契約とmachine-readable BFM入力を作り、V13のチャネル割当・外部調停互換性はunknownとして分離する。RTL/physical enableは本Phaseへ入れない。 |
+| `ws001p005` 互換性マトリクス | deferred until IP-complete gate | PC-9821V13の完全型番と測定環境を最初の入力とする。 |
 | `ws002p001` 部品比較 | completed | Primer 86 GPIO、Mega 144 GPIOを確認した。ユーザが両方をboard top差し替え対象と決定したため、次のQueueでp002の二種類の物理mappingを再開できる。 |
 
 ## 6. 実測再開条件

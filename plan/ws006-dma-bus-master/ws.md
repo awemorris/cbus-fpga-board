@@ -1,6 +1,6 @@
 # WS006: DMA・Cバスバスマスタ
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws006`
 
@@ -8,7 +8,7 @@ Status: planning
 
 Parent: [master plan](../master.md)
 
-Resume point: AXI DRAMとCSRが安定した後、ローカルDMAから段階的に実装する。
+Resume point: `ws001p004`契約後、物理配線を要しない`ws006p002`従来DMA BFM/RTLと`ws006p004`bus-owner/master BFMを先に詳細化する。ローカルDMAはWS004のboard-independent reference memory/fabricで検証し、実機DMA PhaseはIP-complete gate後へ延期する。
 
 ## Objective
 
@@ -32,18 +32,18 @@ CPUがMMIOで制御でき、ユーザIP・DRAM・PC-98間のデータ移動を�
 ## Dependencies
 
 - WS001の従来DMA/バスマスタ信号とタイミング。
-- WS002の双方向アドレス・データ・制御LVCと安全OE。
-- WS003のCバスターゲット経路、WS004のDRAM/fabric、WS005のIRQ。
+- board-independent RTL/BFMはWS001契約、WS003 request境界、WS004 reference memory/fabric、WS005 IRQを入力にする。
+- 物理DMA/bus-masterだけがWS002の双方向アドレス・データ・制御LVCと実機安全OEに依存する。
 
 ## Phase registry
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| `ws006p001` | planned after ws004p003 | AXIローカルDMA、CSR、descriptor、IRQをDRAM/FIFO間で検証する。 |
-| `ws006p002` | planned | `DRQ/DACK/TC/WORD`等による従来DMA endpointをBFMで検証する。 |
-| `ws006p003` | planned | 従来DMAを実機で低速・小転送から検証する。 |
-| `ws006p004` | proposed | `cbus_bus_owner`と`cbus_master_engine`をBFMで実装する。 |
-| `ws006p005` | proposed | protected host aperture経由の実機バスマスタDMAを検証する。 |
+| `ws006p001` | planned after ws004p002/p004 | AXIローカルDMA、CSR、descriptor、IRQをreference memory/FIFO間で検証する。 |
+| `ws006p002` | planned after ws001p004 | `DRQ/DACK/TC/WORD`等による従来DMA endpointをBFMで検証する。 |
+| `ws006p003` | deferred until IP-complete gate | 従来DMAを実機で低速・小転送から検証する。 |
+| `ws006p004` | planned after ws001p004/ws004p002 | `cbus_bus_owner`と`cbus_master_engine`をBFMで実装する。 |
+| `ws006p005` | deferred until IP-complete gate | protected host aperture経由の実機バスマスタDMAを検証する。 |
 
 ## Proposed module boundaries
 

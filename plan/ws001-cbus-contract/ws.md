@@ -1,6 +1,6 @@
 # WS001: Cバス仕様・インターフェース契約
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws001`
 
@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws001p003`の受動targetタイミング契約は完了した。次のWS001内作業は`ws001p004`の従来DMA/外部バスマスタ契約、または実機と測定器を準備後の`ws001p005`互換性マトリクスである。WS003は今回の契約を使ってBFM/target MVPへ進める。
+Resume point: board-independent IPを先に完成させる方針により、次は詳細化済み`ws001p004`の従来DMA/外部バスマスタ契約を調査Queueへ提案できる。実機と測定器を要する`ws001p005`互換性マトリクスはIP-complete gate後へ延期する。
 
 ## Objective
 
@@ -45,8 +45,8 @@ Cバスの信号、電気条件、転送タイミング、I/O・メモリ・DMA�
 | [`ws001p001`](phase001-evidence-baseline/phase.md) | completed | 出典と不確実性を含むCバス証拠台帳を作る。 |
 | [`ws001p002`](phase002-signal-matrix/phase.md) | completed | コネクタから論理RTLまでの信号・方向・電気マトリクスを確定する。 |
 | [`ws001p003`](phase003-timing-contract/phase.md) | completed | I/O/メモリ/割り込みのサイクル表とタイミング契約を作る。 |
-| `ws001p004` | proposed | 従来DMAと外部バスマスタの調停・転送契約を作る。 |
-| `ws001p005` | proposed | 対象PC-9800機種の互換性マトリクスと実測差分を管理する。 |
+| [`ws001p004`](phase004-dma-busmaster-contract/phase.md) | planned; Queue提案可能 | 従来DMAと外部バスマスタの調停・転送契約を作る。 |
+| `ws001p005` | deferred until IP-complete gate | 対象PC-9800機種の互換性マトリクスと実測差分を管理する。 |
 
 ## Completion conditions
 

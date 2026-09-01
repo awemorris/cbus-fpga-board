@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: Tang Primer 20Kを唯一のprimary hardware targetとする。`ws002p002`のdrive-disabled Primer wrapper/CSTを入力に、Gowin clock/config status wrapper、外付けOE pull-up、安全latch、power/DIR/OE回路をPrimer用回路図へ具体化してから`ws002p003`の段階立上げへ進む。Mega 138KはIP参照回帰だけを保つ。測定器なしではCバス接続試験を開始しない。
+Resume point: Tang Primer 20Kを唯一のprimary hardware targetとする。board-independent IP完成を優先するため、Gowin production wrapper、外付けOE/電源回路、`ws002p003`段階立上げはIP-complete gate後へ延期する。Mega 138KはIP参照回帰だけを保ち、測定器なしではCバス接続試験を開始しない。
 
 ## Objective
 
@@ -43,8 +43,8 @@ Tang FPGAモジュール、LVCフロントエンド、電源、クロック、�
 | --- | --- | --- |
 | [`ws002p001`](phase001-component-selection/phase.md) | completed | Tang/LVC/電源/ソケット候補を定量比較し、試作構成案を得る。 |
 | [`ws002p002`](phase002-portable-top-safety/phase.md) | completed | `cbus_pad_adapter`、共通IP、Primer/Mega top、CSTと安全プロパティを実装する。 |
-| `ws002p003` | planned | ユニバーサル基板試作を組み、電源・High-Z・単方向入力から段階的に立ち上げる。 |
-| `ws002p004` | proposed | 温度、電圧、タイミング余裕と長時間安定性を測定する。 |
+| `ws002p003` | deferred until IP-complete gate | ユニバーサル基板試作を組み、電源・High-Z・単方向入力から段階的に立ち上げる。 |
+| `ws002p004` | deferred after p003 | 温度、電圧、タイミング余裕と長時間安定性を測定する。 |
 
 ## Proposed module boundaries
 
