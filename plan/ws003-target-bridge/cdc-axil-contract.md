@@ -71,7 +71,7 @@ Cバス側endpointはresponse FIFOを常にdrainする。response tagが現在�
 - response FIFOが満杯ならbridgeはresultを保持し、AXI responseを失わない。
 - `AWPROT/ARPROT`はdata、secure、unprivilegedを表す`000`で固定する。
 
-AXI subordinateが永久に応答しない場合もCバス側は既存timeoutでIORDYを解放する。ただし受理済みAXI transaction自体はAXI4-Lite上で取消せないため、bridgeはそのresponseまたはsystem resetまで新しいAXI transactionを開始しない。下流timeout、fault target、region guard、system-level recoveryは`ws003p003`の範囲とする。
+AXI subordinateが永久に応答しない場合もCバス側は既存timeoutでIORDYを解放する。ただしassert済みAXI transaction自体はAXI4-Lite上で取消せない。`ws003p003`の[AXI4-Lite guard契約](axil-guard-contract.md)ではCバスtimeoutより短いguard timeout、quarantine、下流reset要求、明示的fault clearを追加する。
 
 ## 6. Safety invariants
 

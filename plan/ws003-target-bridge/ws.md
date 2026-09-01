@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p002`の非同期request/response FIFO、tag、AXI4-Lite bridgeは完了した。次は`ws003p003`でregion guard、下流timeout/fault recovery、エラー記録を計画する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
+Resume point: `ws003p003`まで完了し、CバスI/OからCDC、AXI4-Lite、region guard、timeout/quarantineまで自己検査済みである。次はWS002の共通IP/board top安全境界を優先する。`ws003p004`はメモリcycle根拠が揃った後、`ws003p005`は試作hardware準備後に再開する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
 
 ## Objective
 
@@ -42,7 +42,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 | --- | --- | --- |
 | [`ws003p001`](phase001-bfm-target-mvp/phase.md) | completed | BFM、target engine、固定ID CSRで8/16-bit I/Oサイクルを検証する。 |
 | [`ws003p002`](phase002-cdc-axil-bridge/phase.md) | completed | CDC request/response FIFOとC-bus-to-AXI4-Liteブリッジを統合する。 |
-| `ws003p003` | planned | AXI4 interconnect、region guard、timeout、エラー記録を追加する。 |
+| [`ws003p003`](phase003-axil-guard-timeout/phase.md) | completed | AXI4-Lite protected route、region guard、timeout/quarantine、エラー記録を追加する。 |
 | `ws003p004` | proposed | 根拠が揃ったCバスメモリサイクルと連続アクセスを追加する。 |
 | `ws003p005` | proposed | ユニバーサル基板上でID/CSRアクセスを実証する。 |
 
@@ -52,7 +52,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 - `cbus_target_axil_subsystem/cbus_req_rsp_cdc/async_fifo`
 - `cbus_to_axil_bridge`
 - `axi4_to_axil_bridge`
-- `axi_region_guard` と `axi_timeout`
+- `axil_guard_timeout` と `cbus_target_guarded_axil_subsystem`
 - `system_csr`
 - board-independent `cbus_ip_top`。Primer/Mega固有topから同一port contractでinstantiateする。
 

@@ -2,7 +2,7 @@
 
 最終更新: 2026-09-01
 
-Queue ID: `Q20260901-007`
+Queue ID: `Q20260901-008`
 
 Queue status: finished
 
@@ -10,17 +10,17 @@ Parent: [master plan](master.md)
 
 ## 1. 現在の実行許可
 
-2026-09-01にユーザが、直前のhandoffで次候補として提示した`ws003p002`の継続実行を明示的に指示した。
+2026-09-01にユーザが、直前のhandoffで次候補として提示した`ws003p003`への進行を明示的に指示した。
 
-`ws003p002`として、dual-clock request/response FIFO、8-bit tagによる遅延response隔離、Cバス16-bit I/Oから32-bit AXI4-Liteへの変換、board非依存subsystemをiverilogで実装・検証する。AXI4 Full、interconnect、region guard、下流無応答からの再初期化、メモリcycle、IRQ、DMA、board top、constraint、回路図、PCB、実機試験は含めない。
+`ws003p003`として、単一許可regionのAXI4-Lite guard、local DECERR、bounded timeout、assert済みtransactionのquarantine、明示的fault clear、sticky/first-fault record、board非依存wrapperをiverilogで実装・検証する。汎用interconnect、System CSR/IRQ配線、AXI4 Full、メモリcycle、DMA、board top、constraint、回路図、PCB、実機試験は含めない。
 
 ## 2. Queue作成前の確認事項
 
 - [x] Master Planは承認済みである。
-- [x] `ws003p001`が完了し、CバスI/O engine、request/response契約、BFMを利用できる。
-- [x] 32-bit AXI4-Liteを内部CSR境界とするMaster Planが承認済みである。
-- [x] CバスとAXI clock domainをrequest/response FIFOで分離する方針が固定済みである。
-- [x] ユーザが直前に提示した`ws003p002`の継続実行を指示した。
+- [x] `ws003p002`が完了し、Cバス/CDC/AXI4-Lite Managerと非同期BFMを利用できる。
+- [x] Cバス由来ManagerをPC-98 host apertureへ再入させない方針がMaster Planで固定済みである。
+- [x] Cバスtimeoutより短い下流timeoutと、受理済みAXI transactionのcoherent reset境界が必要と判明している。
+- [x] ユーザが直前に提示した`ws003p003`への進行を指示した。
 - [x] 調査は時間制限なしである。
 - [x] `iverilog` 12.0と`vvp` 12.0が利用できる。
 - [x] ユーザがQueue完了時または切りのよい境界でのcommitと`git push origin master`を許可した。
@@ -29,7 +29,7 @@ Parent: [master plan](master.md)
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws003p002` | [phase.md](ws003-target-bridge/phase002-cdc-axil-bridge/phase.md) | completed | 2026-09-01 user requested continuation of the next Queue |
+| 1 | `ws003p003` | [phase.md](ws003-target-bridge/phase003-axil-guard-timeout/phase.md) | completed | 2026-09-01 user requested proceeding to the next Queue |
 
 ## 4. 前Queue
 
@@ -39,39 +39,42 @@ Parent: [master plan](master.md)
 - `Q20260831-004`: `ws001p002-resume` completed、Queue finished。共通69 endpointをPrimer/Megaへ割り当てた。
 - `Q20260831-005`: `ws001p003` completed、Queue finished。9世代profile、93 timing parameter、6 cycle contractを作成した。
 - `Q20260901-006`: `ws003p001` completed、Queue finished。CバスI/O target MVPと157-checkのBFMを作成した。
+- `Q20260901-007`: `ws003p002` completed、Queue finished。dual-clock CDCとAXI4-Lite bridgeを合計467 checksで検証した。
 
 ## 5. 実行結果
 
-`ws003p002` completed。
+`ws003p003` completed。
 
-- Gray pointerと2段pointer synchronizerを持つgeneric depth-4 dual-clock FIFOを実装した。
-- Cバス側で8-bit tagを付加するrequest/response CDC endpointを実装し、timeout後の遅延responseを後続cycleへ誤適用せず破棄できるようにした。
-- Cバス16-bit wordを32-bit AXI4-Lite registerへ展開し、offset `+0/+2/+4/+6`を`+0/+4/+8/+12`へ変換した。
-- AXI AW/Wを独立handshakeし、B/R responseと`SLVERR/DECERR`をtag付きCバスresponseへ戻すbridgeを実装した。
-- target engine、CDC FIFO、AXI bridge、domain別同期resetをboard非依存`cbus_target_axil_subsystem`へ統合した。
-- host strobe終了edgeでrequestを新規受理しないgateをtarget engineへ追加し、abort/timeout境界のside effect競合を縮小した。
+- System CSR 4 KiBだけを許可するAXI4-Lite region guardを実装し、PC-98 memory/I/O host apertureを含む範囲外accessを下流handshakeなしのlocal DECERRにした。
+- 上流AW/Wを独立bufferし、両方が揃ってからaddress判定と下流forwardを行う。
+- AXI VALIDはREADY前にも取消せないという実装時発見をP書へ戻し、handshake前を含む全timeoutをquarantineする設計へ修正した。
+- timeout後も未handshake VALID/payloadを保持し、遅延B/Rをdrainする。fault中の新規requestは保存payloadを上書きせずlocal DECERRにする。
+- subordinate/interconnect reset後の`fault_clear`だけで再開し、`fault_reset_req`をreset controller向けに出力する。
+- guard/timeout/downstream-error stickyとfirst-fault code/direction/addressを実装し、status clearとfault clearを分離した。
+- 既存Cバス/CDC/AXI subsystemへguardを追加するboard非依存wrapperを実装した。
 
 検証結果:
 
-- `tb_cbus_target_mvp`: 157 checks PASS。
-- `tb_async_fifo`: 異なる10 ns/14 ns clock、full/empty、wrap、backpressure、coherent resetの57 checks PASS。
-- `tb_cbus_axil_bridge`: address/lane変換、AW/W/AR独立backpressure、valid payload保持、AXI error、timeout後のstale response破棄と復旧、resetの253 checks PASS。
-- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。合計467 checks PASS。
+- 既存`tb_cbus_target_mvp` 157、`tb_async_fifo` 57、`tb_cbus_axil_bridge` 253 checks PASS。
+- `tb_axil_guard_timeout`: region reject、first fault、SLVERR、issue/partial/response timeout、VALID/payload保持、fault中payload非上書き、late drain、reset/clear/recoveryの65 checks PASS。
+- `tb_cbus_guarded_axil`: 通常CSR、guard timeoutがCバスtimeoutより先に返ること、fault中local error、下流reset後復旧、coherent resetの103 checks PASS。
+- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。合計635 checks PASS。
 - WS001 timing/signal/platform validatorとWS002 pinout validatorはすべてPASS。
 
-成果物: [CDC・AXI4-Lite契約](ws003-target-bridge/cdc-axil-contract.md)、[実行手順](ws003-target-bridge/tests/README.md)、`rtl/common/async_fifo.sv`、`rtl/common/reset_sync.sv`、`rtl/cbus/cbus_req_rsp_cdc.sv`、`rtl/axi/cbus_to_axil_bridge.sv`、`rtl/cbus/cbus_target_axil_subsystem.sv`。
+成果物: [AXI4-Lite guard契約](ws003-target-bridge/axil-guard-contract.md)、[実行手順](ws003-target-bridge/tests/README.md)、`rtl/axi/axil_guard_timeout.sv`、`rtl/cbus/cbus_target_guarded_axil_subsystem.sv`、二つの自己検査BFM。
 
-Queue内の許可作業を検証まで完了した。AXI subordinateが永久に無応答の場合もCバスはtimeoutで解放するが、受理済みAXI transactionはresponseまたはcoherent resetまでbridgeを占有する。下流timeout、fault target、region guard、エラー記録は`ws003p003`へ残した。
+Queue内の許可作業を検証まで完了した。fault recordは安定したsidebandまでを実装し、System CSR/IRQ配線はWS005/WS004との後続境界へ残した。汎用複数target interconnect、メモリcycle、board top、constraint、回路図、PCB、実機試験は実施していない。
 
 ## 6. 今回の実行内容
 
 実行内容:
 
-- generic dual-clock FIFOとtag付きrequest/response CDC endpointを実装する。
-- Cバス16-bit I/Oを32-bit AXI4-Lite Manager transactionへ変換する。
-- target engine、CDC、AXI bridgeをboard非依存subsystemとして統合する。
-- 非同期clock、FIFO/AXI backpressure、byte lane、AXI error、timeout後の遅延response、resetを自己検査する。
-- 実行script、test一覧、VCD、check数を記録する。
+- single-region AXI4-Lite guardとlocal DECERRを実装する。
+- AXI VALID保持則に従い、handshake前を含む全下流timeoutをquarantineする。
+- fault中local error、late response drain、fault reset/clear境界を実装する。
+- sticky原因とfirst-fault code/direction/addressを記録する。
+- 既存subsystemへguardを接続するboard非依存wrapperと自己検査BFMを追加する。
+- 既存467 checksとWS001/WS002 validatorを回帰する。
 - M/W/P/Qを実績へ同期する。
 
 状態: 完了。

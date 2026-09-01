@@ -46,3 +46,20 @@ The `ws003p002` integration test connects the tri-state C-bus BFM through two as
 7. coherent reset, platform output gate, and post-reset recovery
 
 The C-bus and AXI models use unrelated 10 ns and 14 ns clocks. Continuous checks retain the contention, driven-X, write-drive, and reset/not-ready output safety rules.
+
+## `tb_axil_guard_timeout`
+
+The standalone `ws003p003` test checks:
+
+1. allowed access and independently arriving AW/W channels
+2. local DECERR for both PC-98 host apertures without downstream handshake
+3. first-fault retention and independent status clear
+4. downstream SLVERR recording without quarantine
+5. AR issue timeout with VALID/address retention
+6. partial AW-only write timeout with WVALID/data/strobe retention
+7. local DECERR for new requests while faulted
+8. accepted-read response timeout, late R drain, subordinate reset, explicit fault clear, and recovery
+
+## `tb_cbus_guarded_axil`
+
+The end-to-end guard test uses unrelated 10 ns C-bus and 14 ns AXI clocks. It verifies normal ID/scratch access, an AXI response timeout that returns a C-bus backend error before the C-bus timeout, faulted local rejection without downstream leakage, subordinate reset plus fault clear, and coherent system-reset recovery.
