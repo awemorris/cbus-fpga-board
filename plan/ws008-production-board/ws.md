@@ -1,6 +1,6 @@
 # WS008: 専用PCB・製造・頒布
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws008`
 
@@ -8,7 +8,7 @@ Status: proposed
 
 Parent: [master plan](../master.md)
 
-Resume point: ユニバーサル基板MVPの実測結果を得た後、専用PCB要件と数量別見積りを詳細化する。
+Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。入手後に外形、表裏パターン、カードエッジ処理、+5 V/GND、全100端子のland導通を調べ、ユニバーサル基板MVPへ使用できるか確定する。
 
 ## Objective
 
@@ -35,6 +35,12 @@ Resume point: ユニバーサル基板MVPの実測結果を得た後、専用PCB
 
 - WS001〜WS007の凍結済みインターフェース、試験証拠、bitstream、BOM。
 - ユーザによる頒布数量、目標原価、実装範囲、保証/サポート方針の判断。
+
+## Prototype hardware on hand / ordered
+
+- x86ラボ `CB-U04`: 購入済み、未受領/未検査。初回Cバスユニバーサル基板候補。
+- 公開販売情報ではPC-98/互換機向け、イヤホンとMIDI connector実装対応とされるが、端子表、layer/pattern、電源railは現物確認前に確定としない。
+- `CB-U04`の記録はPrimer 20K/Mega 138K共通IPのboard独立境界を変更しない。物理試作配線とmechanical fitの入力とする。
 
 ## Phase registry
 

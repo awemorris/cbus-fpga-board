@@ -8,7 +8,9 @@ Phase ID: `p001`
 
 Combined ID: `ws005p001`
 
-Status: planned; dependency satisfied by `ws003p006`
+Status: completed
+
+Queue: `Q20260901-011`
 
 Parent: [WS005](../ws.md)
 
@@ -33,11 +35,11 @@ Parent: [WS005](../ws.md)
 
 ## Work packages
 
-- [ ] host、CPU、DMA、user IPのイベント一覧と優先度を作る。
-- [ ] register mapと状態遷移図を作る。
-- [ ] W1C、mask、同時set/clear、FIFO境界の決定表を作る。
-- [ ] PC-98 I/O窓に公開する最小subsetを定義する。
-- [ ] RTLテストとsoftware driverが共有できる定数生成方針を決める。
+- [x] host、CPU、DMA、user IPのイベント一覧と優先度を作る。
+- [x] register mapと状態遷移図を作る。
+- [x] W1C、mask、同時set/clear、FIFO境界の決定表を作る。
+- [x] PC-98 I/O窓に公開する最小subsetを定義する。
+- [x] RTLテストとsoftware driverが共有できる定数生成方針を決める。
 
 ## Completion conditions
 
@@ -50,6 +52,30 @@ Parent: [WS005](../ws.md)
 
 register map、状態遷移、イベント一覧、レビュー結果、未決のIRQ/ポート選択を記録する。
 
-## Interruption and resume record
+## Execution result
 
-Not started. IRQ共有規則またはポート競合の判断が必要なら、相対契約だけを完成させ、物理割当を `uncleared` としてユーザ判断へ戻す。
+2026-09-01 Queue `Q20260901-011`で完了した。
+
+- H2C/C2Hをそれぞれdepth 8、width 32のFIFOとし、pushとdoorbellを分離した。
+- 31 AXI4-Lite register、17 event source、16 CバスaliasのABI v1を固定した。
+- Doorbellは1-bit coalescing、pendingはmaskと独立、ackはW1C、set/clear同時はset優先とした。
+- FIFOのempty/fullでの同時push/pop、overflow/underflow、reset競合を決定表で一意にした。
+- 物理base未決定の32-byte Cバス相対aliasにより、IRQ未割当でもpollingで完結できる契約とした。
+- JSONを正本とし、SystemVerilog package、C header、Rust constantsを決定的に生成するようにした。
+- AXI4-Liteにmanager identityがないため、owner制限はCバスalias/interconnectで実施し、subordinate単体はmanager種別を推測しない境界を明記した。
+
+再現コマンド:
+
+```sh
+plan/ws005-mailbox-interrupt/tests/run_contract_checks.sh
+```
+
+結果:
+
+```text
+mailbox ABI: PASS (31 registers, 17 events, 16 C-bus aliases)
+tb_mailbox_constants: PASS (12 checks)
+C header: PASS (12 compile-time checks)
+```
+
+Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。C11は`-Wall -Wextra -Werror`でPASSした。物理IRQ番号、CバスI/O base、RISC-Vコアは意図どおり未決定のままである。

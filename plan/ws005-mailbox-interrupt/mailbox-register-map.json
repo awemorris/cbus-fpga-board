@@ -1,0 +1,577 @@
+{
+  "schema_version": 1,
+  "abi_version": 1,
+  "register_width_bits": 32,
+  "blocks": [
+    {
+      "name": "INTR",
+      "base": "0x10002000",
+      "size": "0x1000"
+    },
+    {
+      "name": "MBX",
+      "base": "0x10003000",
+      "size": "0x1000"
+    }
+  ],
+  "constants": [
+    {
+      "name": "MBX_FIFO_DEPTH",
+      "value": "0x00000008"
+    },
+    {
+      "name": "MBX_ENTRY_BITS",
+      "value": "0x00000020"
+    }
+  ],
+  "registers": [
+    {
+      "block": "INTR",
+      "name": "ID",
+      "offset": "0x000",
+      "access": "RO",
+      "reset": "0x49520001",
+      "owner": "hardware"
+    },
+    {
+      "block": "INTR",
+      "name": "CAP",
+      "offset": "0x004",
+      "access": "RO",
+      "reset": "0x00200001",
+      "owner": "hardware"
+    },
+    {
+      "block": "INTR",
+      "name": "CPU_PENDING",
+      "offset": "0x010",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "hardware"
+    },
+    {
+      "block": "INTR",
+      "name": "CPU_MASK",
+      "offset": "0x014",
+      "access": "RW",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "INTR",
+      "name": "CPU_ACK",
+      "offset": "0x018",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "INTR",
+      "name": "CPU_ACTIVE",
+      "offset": "0x01c",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "hardware"
+    },
+    {
+      "block": "INTR",
+      "name": "HOST_PENDING",
+      "offset": "0x020",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "hardware"
+    },
+    {
+      "block": "INTR",
+      "name": "HOST_MASK",
+      "offset": "0x024",
+      "access": "RW",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "INTR",
+      "name": "HOST_ACK",
+      "offset": "0x028",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "INTR",
+      "name": "HOST_ACTIVE",
+      "offset": "0x02c",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "ID",
+      "offset": "0x000",
+      "access": "RO",
+      "reset": "0x4d420001",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "CAP",
+      "offset": "0x004",
+      "access": "RO",
+      "reset": "0x08200001",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_HOST_LO",
+      "offset": "0x010",
+      "access": "RW",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_HOST_HI",
+      "offset": "0x014",
+      "access": "RW",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_HOST_PUSH",
+      "offset": "0x018",
+      "access": "W1P",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_CPU_DATA",
+      "offset": "0x01c",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_CPU_POP",
+      "offset": "0x020",
+      "access": "W1P",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_STATUS",
+      "offset": "0x024",
+      "access": "RO",
+      "reset": "0x00000100",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_HOST_ERR_ACK",
+      "offset": "0x028",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_CPU_ERR_ACK",
+      "offset": "0x02c",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_CPU_PUSH_DATA",
+      "offset": "0x030",
+      "access": "PUSH32",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_HOST_LO",
+      "offset": "0x034",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_HOST_HI",
+      "offset": "0x038",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_HOST_POP",
+      "offset": "0x03c",
+      "access": "W1P",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_STATUS",
+      "offset": "0x040",
+      "access": "RO",
+      "reset": "0x00000100",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_CPU_ERR_ACK",
+      "offset": "0x044",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_HOST_ERR_ACK",
+      "offset": "0x048",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "H2C_DOORBELL_SET",
+      "offset": "0x050",
+      "access": "W1S",
+      "reset": "0x00000000",
+      "owner": "host"
+    },
+    {
+      "block": "MBX",
+      "name": "C2H_DOORBELL_SET",
+      "offset": "0x054",
+      "access": "W1S",
+      "reset": "0x00000000",
+      "owner": "local_control"
+    },
+    {
+      "block": "MBX",
+      "name": "DOORBELL_STATUS",
+      "offset": "0x058",
+      "access": "RO",
+      "reset": "0x00000000",
+      "owner": "hardware"
+    },
+    {
+      "block": "MBX",
+      "name": "DOORBELL_COALESCED_ACK",
+      "offset": "0x05c",
+      "access": "W1C",
+      "reset": "0x00000000",
+      "owner": "receivers"
+    }
+  ],
+  "fields": [
+    {
+      "register": "INTR_CPU_PENDING",
+      "name": "VALID_SOURCES",
+      "mask": "0x00ff037d"
+    },
+    {
+      "register": "INTR_HOST_PENDING",
+      "name": "VALID_SOURCES",
+      "mask": "0x00000002"
+    },
+    {
+      "register": "MBX_H2C_STATUS",
+      "name": "OCCUPANCY",
+      "mask": "0x0000000f"
+    },
+    {
+      "register": "MBX_H2C_STATUS",
+      "name": "EMPTY",
+      "mask": "0x00000100"
+    },
+    {
+      "register": "MBX_H2C_STATUS",
+      "name": "FULL",
+      "mask": "0x00000200"
+    },
+    {
+      "register": "MBX_H2C_STATUS",
+      "name": "OVERFLOW_STICKY",
+      "mask": "0x00010000"
+    },
+    {
+      "register": "MBX_H2C_STATUS",
+      "name": "UNDERFLOW_STICKY",
+      "mask": "0x00020000"
+    },
+    {
+      "register": "MBX_C2H_STATUS",
+      "name": "OCCUPANCY",
+      "mask": "0x0000000f"
+    },
+    {
+      "register": "MBX_C2H_STATUS",
+      "name": "EMPTY",
+      "mask": "0x00000100"
+    },
+    {
+      "register": "MBX_C2H_STATUS",
+      "name": "FULL",
+      "mask": "0x00000200"
+    },
+    {
+      "register": "MBX_C2H_STATUS",
+      "name": "OVERFLOW_STICKY",
+      "mask": "0x00010000"
+    },
+    {
+      "register": "MBX_C2H_STATUS",
+      "name": "UNDERFLOW_STICKY",
+      "mask": "0x00020000"
+    },
+    {
+      "register": "MBX_DOORBELL_STATUS",
+      "name": "H2C_PENDING",
+      "mask": "0x00000001"
+    },
+    {
+      "register": "MBX_DOORBELL_STATUS",
+      "name": "C2H_PENDING",
+      "mask": "0x00000002"
+    },
+    {
+      "register": "MBX_DOORBELL_STATUS",
+      "name": "H2C_COALESCED_STICKY",
+      "mask": "0x00010000"
+    },
+    {
+      "register": "MBX_DOORBELL_STATUS",
+      "name": "C2H_COALESCED_STICKY",
+      "mask": "0x00020000"
+    }
+  ],
+  "event_sources": [
+    {
+      "id": 0,
+      "name": "H2C_DOORBELL",
+      "destination": "cpu",
+      "priority": 0
+    },
+    {
+      "id": 1,
+      "name": "C2H_DOORBELL",
+      "destination": "host",
+      "priority": 0
+    },
+    {
+      "id": 2,
+      "name": "H2C_OVERFLOW",
+      "destination": "cpu",
+      "priority": 1
+    },
+    {
+      "id": 3,
+      "name": "H2C_UNDERFLOW",
+      "destination": "cpu",
+      "priority": 1
+    },
+    {
+      "id": 4,
+      "name": "C2H_OVERFLOW",
+      "destination": "cpu",
+      "priority": 1
+    },
+    {
+      "id": 5,
+      "name": "C2H_UNDERFLOW",
+      "destination": "cpu",
+      "priority": 1
+    },
+    {
+      "id": 6,
+      "name": "GUARD_FAULT",
+      "destination": "cpu",
+      "priority": 0
+    },
+    {
+      "id": 8,
+      "name": "DMA_DONE",
+      "destination": "cpu",
+      "priority": 3
+    },
+    {
+      "id": 9,
+      "name": "DMA_ERROR",
+      "destination": "cpu",
+      "priority": 1
+    },
+    {
+      "id": 16,
+      "name": "USER_IRQ0",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 17,
+      "name": "USER_IRQ1",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 18,
+      "name": "USER_IRQ2",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 19,
+      "name": "USER_IRQ3",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 20,
+      "name": "USER_IRQ4",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 21,
+      "name": "USER_IRQ5",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 22,
+      "name": "USER_IRQ6",
+      "destination": "cpu",
+      "priority": 4
+    },
+    {
+      "id": 23,
+      "name": "USER_IRQ7",
+      "destination": "cpu",
+      "priority": 4
+    }
+  ],
+  "cbus_aliases": [
+    {
+      "offset": "0x00",
+      "name": "H2C_LO",
+      "target": "MBX_H2C_HOST_LO",
+      "slice": "15:0",
+      "access": "RW"
+    },
+    {
+      "offset": "0x02",
+      "name": "H2C_HI",
+      "target": "MBX_H2C_HOST_HI",
+      "slice": "15:0",
+      "access": "RW"
+    },
+    {
+      "offset": "0x04",
+      "name": "H2C_PUSH",
+      "target": "MBX_H2C_HOST_PUSH",
+      "slice": "15:0",
+      "access": "W1P"
+    },
+    {
+      "offset": "0x06",
+      "name": "H2C_DOORBELL_SET",
+      "target": "MBX_H2C_DOORBELL_SET",
+      "slice": "15:0",
+      "access": "W1S"
+    },
+    {
+      "offset": "0x08",
+      "name": "H2C_STATUS_LO",
+      "target": "MBX_H2C_STATUS",
+      "slice": "15:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x0a",
+      "name": "H2C_STATUS_HI",
+      "target": "MBX_H2C_STATUS",
+      "slice": "31:16",
+      "access": "RO"
+    },
+    {
+      "offset": "0x0c",
+      "name": "C2H_LO",
+      "target": "MBX_C2H_HOST_LO",
+      "slice": "15:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x0e",
+      "name": "C2H_HI",
+      "target": "MBX_C2H_HOST_HI",
+      "slice": "15:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x10",
+      "name": "C2H_POP",
+      "target": "MBX_C2H_HOST_POP",
+      "slice": "15:0",
+      "access": "W1P"
+    },
+    {
+      "offset": "0x12",
+      "name": "C2H_STATUS_LO",
+      "target": "MBX_C2H_STATUS",
+      "slice": "15:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x14",
+      "name": "C2H_STATUS_HI",
+      "target": "MBX_C2H_STATUS",
+      "slice": "31:16",
+      "access": "RO"
+    },
+    {
+      "offset": "0x16",
+      "name": "HOST_PENDING",
+      "target": "INTR_HOST_PENDING",
+      "slice": "15:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x18",
+      "name": "HOST_MASK",
+      "target": "INTR_HOST_MASK",
+      "slice": "15:0",
+      "access": "RW"
+    },
+    {
+      "offset": "0x1a",
+      "name": "HOST_ACK",
+      "target": "INTR_HOST_ACK",
+      "slice": "15:0",
+      "access": "W1C"
+    },
+    {
+      "offset": "0x1c",
+      "name": "HOST_DIAG_STATUS",
+      "target": "synthetic_host_diag_status",
+      "slice": "2:0",
+      "access": "RO"
+    },
+    {
+      "offset": "0x1e",
+      "name": "HOST_DIAG_ACK",
+      "target": "synthetic_host_diag_ack",
+      "slice": "2:0",
+      "access": "W1C"
+    }
+  ]
+}

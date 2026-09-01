@@ -4,11 +4,11 @@
 
 WSID: `ws005`
 
-Status: planned
+Status: in-progress (p001 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p006`でSystem CSRのCバス読書きが成立した。次のQueue候補は`ws005p001`で、物理IRQ番号を決めずに相対mailbox/doorbell/IRQ契約を固定する。
+Resume point: `ws005p001`でABI v1を固定した。次のQueue候補は`ws005p002`で、CPUコアや物理IRQに依存しないstandalone mailbox/router RTLを実装する。
 
 ## Objective
 
@@ -40,10 +40,11 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| [`ws005p001`](phase001-register-contract/phase.md) | planned; dependency satisfied | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
-| `ws005p002` | planned | mailbox FIFO、interrupt router、W1C/maskをRTL実装する。 |
+| [`ws005p001`](phase001-register-contract/phase.md) | completed | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
+| [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | planned; ready | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
 | `ws005p004` | proposed | 必要性が実証された場合だけ監視write-event FIFOを追加する。 |
+| `ws005p005` | planned after p002 | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
 
 ## Completion conditions
 

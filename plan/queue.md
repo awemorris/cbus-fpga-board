@@ -2,7 +2,7 @@
 
 最終更新: 2026-09-01
 
-Queue ID: `Q20260901-010`
+Queue ID: `Q20260901-011`
 
 Queue status: finished
 
@@ -10,56 +10,61 @@ Parent: [master plan](master.md)
 
 ## 1. 現在の実行許可
 
-2026-09-01にユーザが、前Queueのhandoffで提示したAXI-Lite System CSR subordinateとguard fault status統合へ進むよう明示的に指示した。
+2026-09-01にユーザが、前Queueのhandoffで提示した`ws005p001`へ続けて進むよう明示的に指示した。
 
-`ws003p006`として、既存Cバス8-byte窓に対応する四つのSystem CSR、AXI4-Lite protocol、共通IP内統合、Primer/Mega同値BFMを実装・検証する。mailbox、IRQ、DMA、interconnect、fault自動復旧、Gowin/回路図/PCB/実機は含めない。
+mailbox、doorbell、interrupt routerのボード非依存レジスタ契約を固定する。物理CバスI/O base、IRQ番号、RISC-Vコア、RTL実装、回路図、PCB、実機は含めない。
 
 ## 2. Queue作成前の確認事項
 
 - [x] Master Planは承認済みである。
-- [x] `ws003p003`でCバス/CDC/AXI guardが完了している。
-- [x] `ws002p002`で共通IPとPrimer/Mega board topが完了している。
-- [x] Cバス8-byte窓はAXI `+0/+4/+8/+C`の四wordへ固定済みである。
-- [x] guard fault clearは同じquarantine済みCバス経路へ置かず、独立復旧経路へ残す。
-- [x] `iverilog` 12.0を利用できる。
+- [x] `ws003p006`でSystem CSRとCバスからのAXI4-Lite読書きが成立した。
+- [x] Mailboxは`0x1000_3000-0x1000_3fff`、interrupt routerは`0x1000_2000-0x1000_2fff`の予約案を使用する。
+- [x] 物理IRQ/I/Oポートは未決定のまま、相対契約だけを完成できる。
 - [x] ユーザがQueue境界でのcommitと`git push origin master`を許可している。
 
 ## 3. Execution registry
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws003p006` | [phase.md](ws003-target-bridge/phase006-system-csr/phase.md) | completed | 2026-09-01 user requested proceeding |
+| 1 | `ws005p001` | [phase.md](ws005-mailbox-interrupt/phase001-register-contract/phase.md) | completed | 2026-09-01 user requested proceeding |
 
 ## 4. 前Queue
 
-- `Q20260831-001`〜`Q20260901-008`: WS001/WS002/WS003の調査、Cバスtarget、CDC、AXI guardを実行。
-- `Q20260901-009`: `ws002p002` completed。共通IP、安全OE、Primer/Mega top、CSTを実装。
+- `Q20260831-001`〜`Q20260901-009`: WS001/WS002/WS003の調査、Cバスtarget、CDC、AXI guard、portable topを実行。
+- `Q20260901-010`: `ws003p006` completed。共通IP内にAXI4-Lite System CSRを統合した。
 
-## 5. 実行結果
+## 5. 今回の実行内容
 
-`ws003p006` completed。
-
-- `PRODUCT_ID=0x4342_cb98`、`VERSION_CAP=0x00ff_0002`、32-bit byte-strobe `SCRATCH`、read-only `STATUS`の四word System CSRを実装した。
-- AXI4-Lite AW/W独立buffer、B/R backpressure payload保持、RO SLVERR、範囲外/非word-aligned DECERRを実装した。
-- Cバスsticky levelを二段同期し、guard quarantine/sticky/first-fault summaryとSTATUSへ収容した。
-- CSRをboard-independent `cbus_ip_top`内でguard下流へ接続し、platform shellの暫定error targetを削除した。
-- Primer/Mega topからCバス`base+0/+2/+4/+6`でID、version、scratch、statusが同値になることを検証した。
-- guard fault clearは遮断済みCバス経路へ置かず、将来のCPU/debug/platform recovery controllerへ残した。
-
-検証結果:
-
-- 新規`tb_axil_system_csr`: 21 checks PASS。
-- 更新`tb_portable_board_tops`: production既定安全、両top同値、System CSR 16/8-bit laneとbackend/guard statusを37 checks PASS。
-- WS003 current 656、WS002 current 3377、合計4033 HDL checks PASS。
-- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。
-- WS001 signal/platform、WS002 pinout/constraint/portable-top validatorはすべてPASS。
-
-## 6. 今回の実行内容
-
-- 四wordのAXI4-Lite System CSRを実装する。
-- 共通`cbus_ip_top`内でguard下流へ接続し、暫定DECERR targetを置き換える。
-- standalone AXI BFMとPrimer/Mega Cバス統合BFMを追加する。
-- 既存3990 checksと全validatorを回帰する。
+- host、CPU、DMA、user IPのevent sourceと通知先を定義する。
+- AXI4-Lite register map、所有者、reset、副作用を固定する。
+- FIFO境界、doorbell coalescing、W1C/mask、同時set/clear/resetの決定表を作る。
+- 物理baseを固定しないCバス最小相対エイリアスを定義する。
+- 機械可読正本とSV/C/Rust定数の生成・照合を検証する。
 - M/W/P/Qを実績へ同期する。
 
 状態: 完了。
+
+## 6. 実行結果
+
+`ws005p001` completed。
+
+- H2C/C2H各8-entry×32-bit FIFO、独立doorbell、CPU/host別interrupt bankのABI v1を固定した。
+- 31 AXI4-Lite register、17 event source、16のCバス相対aliasを定義した。
+- FIFOのempty/middle/full同時push/pop、overflow/underflow、reset競合を決定表で一意にした。
+- pendingはmask中も保持、W1Cとset同時はset優先、repeated doorbellはcoalesced stickyとした。
+- CバスI/O baseとIRQ番号を未決定のまま、32-byte相対aliasとpolling operationを完成した。
+- JSON正本からSystemVerilog、C、Rust定数を生成・照合するツールと生成物を追加した。
+- AXI4-Liteにmanager identityがないため、owner制限をCバスalias/将来interconnectの責務とする境界を明記した。
+- 後続`ws005p002`のstandalone RTL Phase Bookを実行可能な粒度で作成した。
+- ユーザが購入したx86ラボ`CB-U04`を初回ユニバーサル基板候補としてM書/WS008へ記録した。
+
+検証結果:
+
+- Mailbox ABI/schema/generator: PASS (31 registers、17 events、16 aliases)。
+- SystemVerilog generated constants: 12 checks PASS。
+- C generated header: 12 compile-time checks PASS。
+- 既存HDL regression: WS003 656 + WS002 3377 = 4033 checks PASS。
+- WS001 signal/platform、WS002 pinout/constraint/portable structure validator: PASS。
+- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。C11は`-Wall -Wextra -Werror`でPASS。
+
+物理IRQ番号、CバスI/O base、RISC-Vコア、mailbox/router RTL、共通IP統合は本Queueに含めていない。
