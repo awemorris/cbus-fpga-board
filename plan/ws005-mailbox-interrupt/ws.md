@@ -4,11 +4,11 @@
 
 WSID: `ws005`
 
-Status: in-progress (p001 completed)
+Status: in-progress (p002 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws005p001`でABI v1を固定した。次のQueue候補は`ws005p002`で、CPUコアや物理IRQに依存しないstandalone mailbox/router RTLを実装する。
+Resume point: `ws005p002`でstandalone mailbox/router RTLと自己検査BFMを完了した。RISC-Vと実機IRQを待たずに続ける場合は、`ws005p005`のAXI fabric/Cバス相対alias/`cbus_ip_top`統合を実行可能なP書へ詳細化する。
 
 ## Objective
 
@@ -41,10 +41,10 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 | Phase | Status | Goal |
 | --- | --- | --- |
 | [`ws005p001`](phase001-register-contract/phase.md) | completed | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
-| [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | planned; ready | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
+| [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | completed | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
 | `ws005p004` | proposed | 必要性が実証された場合だけ監視write-event FIFOを追加する。 |
-| `ws005p005` | planned after p002 | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
+| `ws005p005` | planned; needs Phase Book | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
 
 ## Completion conditions
 

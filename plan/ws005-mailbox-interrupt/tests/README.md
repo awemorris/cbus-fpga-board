@@ -1,10 +1,17 @@
-# WS005 contract checks
+# WS005 verification
 
 Run from the repository root:
 
 ```sh
+plan/ws005-mailbox-interrupt/tests/run_iverilog.sh
 plan/ws005-mailbox-interrupt/tests/run_contract_checks.sh
 ```
+
+`run_iverilog.sh` exercises the synchronous FIFO decision table and the
+standalone mailbox/interrupt subsystem. It covers both AXI4-Lite subordinate
+ports, all 31 ABI registers, FIFO ordering and boundary errors, interrupt
+mask/pending/W1C set-wins behavior, doorbell coalescing, response
+backpressure, decode errors and coherent reset.
 
 The check validates the canonical JSON schema, block/register uniqueness,
 alignment, access/owner metadata, event destination masks and the relative

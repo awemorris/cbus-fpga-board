@@ -8,7 +8,7 @@ Phase ID: `p002`
 
 Combined ID: `ws005p002`
 
-Status: planned; dependency satisfied by `ws005p001`
+Status: completed
 
 Parent: [WS005](../ws.md)
 
@@ -53,12 +53,12 @@ ABIの番地、reset、所有者、同時操作規則を変更するなら、RTL
 
 ## Work packages
 
-- [ ] Mailbox register/FIFOを実装する。
-- [ ] Interrupt routerとevent routingを実装する。
-- [ ] FIFOのempty/middle/full同時push/pop表を全網羅する。
-- [ ] pending set/W1C/mask/resetの同時操作を全網羅する。
-- [ ] doorbell coalescing、error分離clear、AXI backpressure/errorを検証する。
-- [ ] 既存WS002/WS003回帰と定数生成照合を実行する。
+- [x] Mailbox register/FIFOを実装する。
+- [x] Interrupt routerとevent routingを実装する。
+- [x] FIFOのempty/middle/full同時push/pop表を全網羅する。
+- [x] pending set/W1C/mask/resetの同時操作を全網羅する。
+- [x] doorbell coalescing、error分離clear、AXI backpressure/errorを検証する。
+- [x] 既存WS002/WS003回帰と定数生成照合を実行する。
 
 ## Completion conditions
 
@@ -71,8 +71,34 @@ ABIの番地、reset、所有者、同時操作規則を変更するなら、RTL
 
 ## Verification commands
 
-Queue実行時にIcarus Verilog 12.0、SystemVerilog 2012の正確なコマンドとcheck数を追記する。
+Repository rootから実行する。
+
+```sh
+plan/ws005-mailbox-interrupt/tests/run_iverilog.sh
+plan/ws005-mailbox-interrupt/tests/run_contract_checks.sh
+plan/ws003-target-bridge/tests/run_iverilog.sh
+plan/ws002-fpga-platform/tests/run_iverilog.sh
+python3 plan/ws001-cbus-contract/tests/validate_signal_matrix.py
+python3 plan/ws001-cbus-contract/tests/validate_platform_maps.py
+python3 plan/ws002-fpga-platform/tests/validate_pinouts.py
+python3 plan/ws002-fpga-platform/tests/validate_portable_top.py
+```
+
+Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`で次をPASSした。
+
+- `tb_mailbox_sync_fifo`: 25 checks。
+- `tb_mailbox_interrupt_subsystem`: 91 checks。
+- ABI/schema/generator: 31 registers、17 events、16 aliases。SV/C定数は各12 checks。
+- 既存WS003: 656 checks。既存WS002: 3377 checks。
+- WS001 signal/platform mapping、WS002 pinout/constraint/portable-top validator: PASS。
+
+新規HDLは116 checks、既存を含むHDL合計は4149 checksである。warningと無限待ちはない。
 
 ## Interruption and resume record
 
-Not started. Cバスaliasや物理IRQの判断が必要になったら本Phaseを拡大せず、standalone RTLまでを検証して統合Phaseへ戻す。
+Completed in `Q20260901-012`。
+
+- `mailbox_sync_fifo`がFIFO決定表を封じ込め、`axil_mailbox`と`axil_interrupt_router`を別module/別AXI subordinate portにした。
+- `mailbox_interrupt_subsystem`はmailbox eventと外部同期eventをrouterへ接続する。共通IPのAXI interconnectは現Phaseに含めない。
+- RTLは生成済みSystemVerilog packageのbase、ID/CAP、valid-source mask、event maskを参照する。ABIの独自改定はない。
+- 物理IRQ、Cバスalias、RISC-Vの人間判断は必要にならず、後続Phaseの境界を維持した。

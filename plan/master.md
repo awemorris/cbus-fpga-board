@@ -60,6 +60,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - `ws002p002`を完了した。flat-port `cbus_ip_top`、六条件の組合せ安全gate、共通board shell、Primer/Mega top、各69 endpoint＋clockのCSTを実装した。新規3355 checksと既存635 checks、構造・pin validatorをPASSした。board topの既定buildはdrive-disabledであり、Gowin clock/config status wrapper、外付けOE pull-up/安全latch、合成、実機High-Zは未検証のまま次Phaseへ残した。
 - `ws003p006`を完了した。共通IP内に四wordのAXI4-Lite System CSRを統合し、ID/version/capability、byte-strobe scratch、Cバス/guard status summaryを実装した。Primer/Mega topのCバス8-byte窓から同じCSRを読書きでき、現在のHDL回帰4033 checksをPASSした。guard fault clearは遮断済みCバス経路へ置かず、独立管理経路の後続課題とした。
 - `ws005p001`を完了した。H2C/C2Hを各8-entry×32-bit FIFO、doorbellを1-bit coalescing pending、interruptをCPU/host別mask/W1CとするABI v1を固定した。31 register、17 event、16のCバス相対aliasをJSONからSV/C/Rustへ生成し、24 contract checksをPASSした。物理IRQ番号、I/O base、RISC-Vは未決定のままである。
+- `ws005p002`を完了した。同期FIFO core、独立AXI4-Lite mailbox/router、二つのsubordinate portを接続するboard-independent subsystemを実装した。FIFO境界表25 checksと31 register、event routing、W1C/mask/set-wins、doorbell coalescing、AXI backpressure/error/resetの91 checksをPASSし、既存HDL 4033 checksとABI 24 checksに回帰がない。共通IP/AXI fabric/Cバスalias統合は後続`ws005p005`に残す。
 - 初回ユニバーサル基板試作用として、ユーザがx86ラボ`CB-U04`を購入した。入手後に表裏パターン、カードエッジ処理、+5 V/GND引出し、Cバス端子からlandへの導通を確認する。
 
 ## 5. 固定済みの主要設計判断
@@ -147,7 +148,7 @@ AXI4-Lite
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed) | MG001, MG002 | 次はGowin production wrapperと外付け安全回路を具体化し、測定環境準備後にp003立上げ | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | System CSRは完了。p004はメモリcycle根拠後、p005は試作hardware後 | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
-| `ws005` | メールボックス・割り込み | in-progress (p001 completed) | MG003 | 次Queue候補はp002 standalone mailbox/router RTL | [WS005](ws005-mailbox-interrupt/ws.md) |
+| `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | 次はp005の共通IP/AXI fabric/Cバスalias統合を実行可能なP書へ詳細化 | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | DMAモード別の信号・安全条件を確定する | [WS006](ws006-dma-bus-master/ws.md) |
 | `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
 | `ws008` | 専用PCB・製造・頒布 | proposed | MG002, MG006 | 入手後のCB-U04を調査し、ユニバーサル基板試作の結果を反映する | [WS008](ws008-production-board/ws.md) |
