@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws002p002`のdrive-disabled board wrapperとCSTを入力に、Gowin clock/config status wrapper、外付けOE pull-up、安全latch、power/DIR/OE回路を回路図へ具体化してから`ws002p003`の段階立上げへ進む。測定器なしではCバス接続試験を開始しない。
+Resume point: Tang Primer 20Kを唯一のprimary hardware targetとする。`ws002p002`のdrive-disabled Primer wrapper/CSTを入力に、Gowin clock/config status wrapper、外付けOE pull-up、安全latch、power/DIR/OE回路をPrimer用回路図へ具体化してから`ws002p003`の段階立上げへ進む。Mega 138KはIP参照回帰だけを保つ。測定器なしではCバス接続試験を開始しない。
 
 ## Objective
 
@@ -23,7 +23,7 @@ Tang FPGAモジュール、LVCフロントエンド、電源、クロック、�
 - クロック、PLL、リセット、コンフィグ完了、安全な出力許可
 - ユニバーサル基板試作向け配線・検査・段階的立上げ
 - Gowin/Tang固有プリミティブを隔離するvendor wrapper
-- Primer 20K/Mega 138Kのboard topだけを差し替え、同一のboard-independent IP topを利用するplatform境界
+- Primer 20Kのproduction board topとMega 138Kのreference topが、同一のboard-independent IP topを利用するplatform境界
 
 ## Non-goals
 
@@ -49,12 +49,12 @@ Tang FPGAモジュール、LVCフロントエンド、電源、クロック、�
 ## Proposed module boundaries
 
 - `tang_primer20k_top`: Primer package pin、constraint、clock/reset/DDR wrapper、LVC物理group、安全OE gateだけを持つ。
-- `tang_mega138k_top`: Mega package pin、constraint、clock/reset/DDR wrapper、LVC物理group、安全OE gateだけを持つ。
+- `tang_mega138k_top`: 共通IPの他board可搬性を照合するreference top。既存package mappingと論理回帰は保つが、本プロジェクトは対応carrierを作らない。
 - `cbus_ip_top`: ボード名と物理pinを持たない共通IPトップ。Cバス論理port、AXI subsystem、CSR、mailbox、DMA、user IP、将来のRISC-Vを収容する。
 - `cbus_pad_adapter`: 共通論理`*_i/_o/_oe_req`を扱い、board top側の物理LVC mappingへ渡す。
 - `clock_reset_ctrl`契約: board wrapperが生成したclock/reset/statusを共通IPへ渡す。PLL/DDR controller等のprimitiveは`rtl/platform/*`または`rtl/vendor/gowin/*`へ隔離する。
 
-詳細な責務と受入条件は[Primer/Mega共通IPトップ境界](portable-top-architecture.md)を正本とする。共通IP内でboard名による`ifdef`分岐を作らない。
+詳細な責務と受入条件は[Primer primary / board-independent IP境界](portable-top-architecture.md)を正本とする。共通IP内でboard名による`ifdef`分岐を作らない。
 
 ## Completion conditions
 
@@ -62,7 +62,7 @@ Tang FPGAモジュール、LVCフロントエンド、電源、クロック、�
 - FPGA未設定時を含め、すべての電源状態でCバスへの意図しない駆動がない。
 - ユニバーサル基板試作の配線検査、電源投入、High-Z、入力観測、限定出力試験が再現可能である。
 - vendor固有コードが上位RTLのCバス/AXI契約へ漏れない。
-- 同じ`cbus_ip_top`を変更せず、Primer/Mega両方のboard targetを選択できる。
+- Primer production topが`cbus_ip_top`を変更せず成立し、Mega reference topでも同じIP/ABIをelaborate・論理回帰できる。回路図、PCB、PCBA、電気/実機受入はPrimerだけを対象にする。
 
 ## Reconsideration boundaries
 

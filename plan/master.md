@@ -36,20 +36,20 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 
 - MWP-Q計画構造に加え、board非依存RTLとしてCバスI/O target engine、dual-clock CDC、AXI4-Lite Manager bridge、guard、共通IP topと自己検査BFMを実装した。Primer/Megaのdrive-disabled board wrapperとpin constraint fragmentも実装済みである。回路図、PCB、Gowin production wrapper、AXI interconnect、ファームウェアは未実装。
 - CバスとFPGAの間にLVC系トランシーバを置く方針、AXI4を内部標準とする方針は合意済み。
-- Tangファミリを採用し、Primer 20KとMega 138K非Proを差し替え可能なboard targetとして扱う方針は合意済み。初回試作はPrimer推奨だが、共通IPはどちらにも依存させない。
+- プロジェクトが試作・専用PCB・合成・実機検証・頒布する唯一のprimary board targetをTang Primer 20K SO-DIMMに固定した。Mega 138K非Proは共通IP/ABIのelaborationと論理互換性を保つreference targetとし、既存top・constraint・回帰資産は維持するが、Mega用Cバスcarrier/PCBは設計・製造対象にしない。
 - 74LVC16245Aまたは74LVC162245Aは候補であり、電圧、方向、OE、電流、伝搬遅延、パッケージ、入手性の確認前には部品確定としない。
 - Cバスの正式な信号集合、DMA調停、タイミング、機種差は一次資料と実機で検証が必要。
-- 初期実機環境はPC-9821V13とCバスユニバーサル基板である。Tang Nano 20Kは34 GPIOというI/O不足により製品platformから外し、Primer 20Kを初回推奨、Mega 138Kを差し替え可能な将来carrierとする。互換目標はV13固有ではなくPC-9800シリーズ全般であり、20-bit/24-bitアドレス、8/16-bitデータ、信号多重化などの世代差を明示して設計する。
+- 初期実機環境はPC-9821V13、x86ラボ`CB-U04`、Tang Primer 20Kである。Tang Nano 20Kは34 GPIOというI/O不足により製品platformから外し、Mega 138Kも製造ボード対象から外す。互換目標はV13固有ではなくPC-9800シリーズ全般であり、20-bit/24-bitアドレス、8/16-bitデータ、信号多重化などの世代差を明示して設計する。
 - 現時点で専用測定器はなく、HDL検証には`iverilog`を利用できる。実測が必要な項目は未確認として分離する。
 - RISC-Vコア設計は優先順位の再整理まで後回しとし、先行Workstreamのブロッカーにしない。
 - `ws001p001`を完了し、Cバス系列資料とV13/Tang公式資料に基づく証拠台帳を作成した。現在はV13を初期実機候補に留め、PC-9800各世代の電気・電源・タイミングとスロット別多重信号を未確認IDで管理する。
 - `ws001p002`でCバス全100端子と世代差を機械可読化した。AB00-AB23は8086型/286以降型の両方に存在するが、20-bit互換と24-bitフルデコードの扱いが異なる。
-- Tang Nano 20Kの露出GPIOは34本である。独立したIORDY/IRQ OEを含めると8-bit I/O最小構成でも35本となり、1本不足する。この判断点はPrimer/Megaの二つのboard targetを採用することで解消した。Nano直結は製品platformに含めない。
+- Tang Nano 20Kの露出GPIOは34本である。独立したIORDY/IRQ OEを含めると8-bit I/O最小構成でも35本となり、1本不足する。この判断点はPrimer 20Kをprimary board targetに採用することで解消した。Nano直結は製品platformに含めない。
 - Tang Primer 20K SO-DIMMとTang Mega 138K非Pro BTB SOMを多I/O候補として調査し、端子表、保守的GPIO数、コネクタ、給電条件を`ws002p001`の成果物へ記録した。
 - 基本給電はCバス+5 Vを優先する。電力余裕が不足する構成ではPC-98内部FDD系5 Vからの補助給電コネクタを候補とし、Cバス電源との直結を避ける選択・逆流防止・保護回路を必須検討項目とする。
 - `ws002p001`を完了した。Tang Primer 20Kは保守的に86本の3.3 V GPIOを持つ。`ws001p002`再開時に安全OEとDMA/bus-master同時予約を含む共通endpointを69本へ訂正し、Primerに17本の余裕があることを実mappingで確認した。公式Wikiの117 I/Oは回路図から再現できず、データシート103 User I/Oは端子分類と整合した。
-- Tang Mega 138K非ProはBank 2/3/4から保守的に144 GPIOを使用でき、同じ69 endpoint mapping後も75本残る。3個の0.4 mm BTBとSOM最大電流未確認のため工場実装carrierとする。Tang Nano 20K直結は不採用、外部CPLD案は別アーキテクチャとして条件付きとする。
-- NEC資料では初期機の+5 V上限が0.5 A/slot、後期機の多くが0.8 A/slotである。Primerの公式0.5 A要求は初期機上限と同値なので、シリーズ共通キャリアにはCバス+5 V既定に加え、排他選択・逆流/過電流保護を持つキー付き補助5 V入力を設ける方針を推奨する。PC側FDD接続は機種別交換ハーネスへ分離する。
+- Tang Mega 138K非ProはBank 2/3/4から保守的に144 GPIOを使用でき、同じ69 endpoint mapping後も75本残ることを調査済みである。この資料はIP可搬性のreferenceとして保持するが、3個の0.4 mm BTBを使うMega carrierは本プロジェクトのPCB/製造範囲外とする。Tang Nano 20K直結は不採用、外部CPLD案は別アーキテクチャとして条件付きとする。
+- NEC資料では初期機の+5 V上限が0.5 A/slot、後期機の多くが0.8 A/slotである。Primerの公式0.5 A要求は初期機上限と同値なので、PrimerキャリアにはCバス+5 V既定に加え、排他選択・逆流/過電流保護を持つキー付き補助5 V入力を設ける方針を推奨する。PC側FDD接続は機種別交換ハーネスへ分離する。
 - `ws001p002`を完了した。共通`cbus_ip_top`用の69 endpointを、Primer SO-DIMMとMega BTBへ同じ順序で割り当てた。受動target、選択IRQ/DMA一経路、286以降型bus-master予約、安全DIR/OEを含み、Primerに17本、Megaに75本の保守的GPIOを残す。
 - `ws001p003`を完了した。8086-classから486/Pentiumまでを9 timing profile、93 parameter、6 cycle contractへ整理した。80286 12 MHzではSCLKをtiming基準にできず、共通targetは非同期captureを前提にする。V13は資料の直接対象外なので実測前には486/Pentium profileを互換保証に使わない。
 - 初期の設計・互換性試験・保証対象は386以降とする。8086/70116/80286固有差は記録のみ保持する。S001上では486/Pentiumも同じ後期型signal/cycle familyであり、parameter差として扱う。後続資料または実測でprotocol上の不連続が判明した場合は再検討する。
@@ -74,17 +74,17 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - ユーザIPは生のCバスへ接続せず、AXI-Lite、IRQ、DMA要求、必要に応じAXI-Streamまたは保護されたAXI Managerを使用する。
 - Cバスから入ったAXI要求がPC-98ホスト窓へ再入する経路は禁止し、再帰デッドロックを防ぐ。
 - 初期のCPUキャッシュは無効、またはDMA共有領域を非キャッシュとし、整合性問題を後段へ持ち越さない。
-- Primer 20KとMega 138Kはboard固有top-level、constraint、platform/vendor wrapperだけを切り替える。Cバス/AXI/CSR/mailbox/DMA/user IP/将来RISC-Vはboard名を持たない共通`cbus_ip_top`以下へ置き、共通IP内にPrimer/Megaの条件コンパイルを持ち込まない。
+- Primer 20Kをprimary hardware targetとし、Mega 138Kは共通IPのreference targetに限定する。Cバス/AXI/CSR/mailbox/DMA/user IP/将来RISC-Vはboard名を持たない共通`cbus_ip_top`以下へ置き、共通IP内にPrimer/Megaの条件コンパイルを持ち込まない。Mega reference topのelaboration/ABI回帰は維持するが、Mega用回路図・PCB・PCBA・実機保証は作成しない。
 - board topは共通IPのOE requestをplatform ready、reset、clock lock、bus permitで追加gateし、configuration中は外付けpull-up等によりRTL非依存でLVCをHigh-Zにする。
 - 初期Cバス互換profileは386以降を対象とする。8086/70116/80286固有profileは調査記録として保持し、初期対応を強制しない。Pentium以降に後期型cycle familyとの不連続が見つかった場合はtarget engineの境界を再検討する。
 
 ## 6. 提案中の論理構成
 
 ```text
-Primer 20K board top        Mega 138K board top
-  pins/CST/PLL/DDR/OE gate    pins/CST/PLL/DDR/OE gate
-             \                /
-              +-- cbus_ip_top --+
+Primer 20K primary board top       Mega 138K reference top
+  product pins/CST/PLL/DDR/OE        elaboration/ABI portability only
+                     \              /
+                      +-- cbus_ip_top --+
                     |
 C-bus connector <-> LVC <-> cbus_pad_adapter
                     <-> cbus_target_engine -> CDC -> AXI-Lite guard -> fabric
@@ -172,7 +172,7 @@ Verification evidence is produced inside every Workstream and is consumed by WS0
 
 次の事項は判断材料を各W/P書で揃えた後、Queue投入前にユーザが決める。
 
-- Primer/Mega各モジュールの購入版、socket/BTB高さ、初回製造数、量産時の供給方針（論理IPは両board target共通で決定済み）
+- Primer 20Kモジュールの購入版、SO-DIMM socket/実装高さ、初回製造数、量産時の供給方針
 - 最初に保証対象とするPC-9800機種、CPU速度、Cバス条件
 - 初版PCBでバスマスタDMA用の双方向アドレス/制御配線を実装するか
 - CバスI/Oベースアドレス、IRQ、DRQ/DACKの設定方式と競合回避方式

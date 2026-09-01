@@ -17,7 +17,7 @@ Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。�
 ## Scope
 
 - Cバスコネクタ、LVC、保護、電源、Tangソケットを載せる専用PCB
-- 同じ論理IP/ABIを使うPrimer SO-DIMM carrierとMega BTB carrierのboard target、製造差分
+- Tang Primer 20K SO-DIMMだけを対象とするcarrier、電源、実装、製造データ
 - 回路図、layout、stackup、クリアランス、mechanical fit、部品表
 - DFM/DFA、PCBA見積り、数量別原価、代替部品、供給寿命
 - bed-of-nailsまたは簡易fixture、boundary/continuity/self-test
@@ -30,6 +30,7 @@ Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。�
 - ユニバーサル基板での成功前に量産発注すること
 - 部品代だけを完成品原価として提示すること
 - 未試験機種への保証、規制・表示・責任範囲を推測すること
+- Mega 138K BTB用Cバスcarrierの回路図、PCB、PCBA、製造試験を作成すること。Megaの共通IP/ABI reference supportはWS002/RTL回帰で扱う。
 
 ## Dependencies
 
@@ -40,7 +41,7 @@ Resume point: 初回試作用にx86ラボ`CB-U04`をユーザが購入済み。�
 
 - x86ラボ `CB-U04`: 購入済み、未受領/未検査。初回Cバスユニバーサル基板候補。
 - 公開販売情報ではPC-98/互換機向け、イヤホンとMIDI connector実装対応とされるが、端子表、layer/pattern、電源railは現物確認前に確定としない。
-- `CB-U04`の記録はPrimer 20K/Mega 138K共通IPのboard独立境界を変更しない。物理試作配線とmechanical fitの入力とする。
+- `CB-U04`の記録はboard-independent共通IP境界を変更しない。Primer 20K primary hardwareの物理試作配線とmechanical fitの入力とする。
 
 ## Phase registry
 

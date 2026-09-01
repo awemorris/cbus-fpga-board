@@ -2,6 +2,8 @@
 
 調査日: 2026-08-31
 
+hardware target方針更新: 2026-09-01
+
 ## 1. 結論
 
 最初のCバス・キャリアには **Tang Primer 20K SO-DIMM** を推奨する。保守的に数えても、Cバスへ割り当て可能な3.3 V双方向GPIOは86本ある。後続mappingで独立response OEとDMA WORD OEを反映し、受動target、選択DMA、286以降bus-masterを同時予約する69 endpointへ訂正した後も17本残る。204-pin SO-DIMMソケットはMegaの0.4 mm BTBより試作しやすく、モジュールも交換できる。
@@ -14,7 +16,7 @@
 - FDD側は機種ごとのコネクタ差を吸収する交換式ハーネスとし、基板へ「PC-98 FDDコネクタ」を直接決め打ちしない。
 - 各入力にヒューズまたはPTC、逆極性/逆流保護、入力バルク容量、電源選択表示を設け、通電中の切替・挿抜を禁止する。
 
-Tang Mega 138K非Pro SOMは144本の保守的GPIOを持つ有力な将来案である。しかし、3個の0.4 mm pitch BTB、未確定のSOM最大電流、Device Version B/Cの手配確認が必要なので、最初のユニバーサル基板には選ばず、工場実装する専用PCB候補として残す。Primerの204-pin SO-DIMM socketもfine-pitch SMTなので、socket自体は実装済みadapterまたは工場実装を使う。
+Tang Mega 138K非Pro SOMは144本の保守的GPIOを持つことを調査済みである。2026-09-01の方針更新により、Megaは共通IP/ABIの移植性を確かめるreference targetとして残すが、工場実装する専用PCB候補から外した。3個の0.4 mm BTB、Mega電源、筐体、PCBA条件を本プロジェクトの製品設計として追い込まない。Primerの204-pin SO-DIMM socketはfine-pitch SMTなので、socket自体は実装済みadapterまたは工場実装を使う。
 
 Tang Nano 20K直結は、独立IORDY/IRQ OEを含む8-bit I/O最小構成だけで35本となり、34 GPIOを1本超えるため不採用とする。全オンボード負荷を自由に切り離せる保証もない。外部CPLDを足す案は成立し得るが、CPLDが実質的なCバス・コントローラになり、ローカル転送プロトコル、二重コンフィグ、タイミング/CDCの新規設計が必要になるためPrimerより単純ではない。
 
@@ -27,7 +29,7 @@ Tang Nano 20K直結は、独立IORDY/IRQ OEを含む8-bit I/O最小構成だけ�
 | Tang Nano 20K直結 | 34 | -35 | 不採用。35本の最小構成にも1本不足。 |
 | Tang Nano 20K + 外部CPLD | モジュール直結値では比較不能 | CPLD品種次第 | 条件付き。別アーキテクチャになる。 |
 | Tang Primer 20K SO-DIMM | 86 | +17 | 初回推奨。 |
-| Tang Mega 138K BTB | 144 | +75 | 専用PCB/工場実装案。 |
+| Tang Mega 138K BTB | 144 | +75 | IP移植性referenceのみ。対応PCBは作らない。 |
 
 ### 2.1 Primer 20Kの103/117 I/O差
 
@@ -51,6 +53,8 @@ Cバス側の基準クロックはNEC資料で最大約9.8304 MHz級であり、
 
 ### 2.2 Mega 138KのBTB
 
+以下はIP reference topの端子根拠を保存するための比較記録である。2026-09-01以後の調達、回路図、PCB、実装計画ではない。
+
 非Pro SOMのコネクタは、`C2399`/`C2400`が`DF40C-100DP-0.4V(51)`、`BTB9900`が`DF40C-80DP-0.4V(51)`で、計280接点である。内訳は次のとおり。
 
 | 分類 | 本数 | Cバス割当 |
@@ -62,9 +66,9 @@ Cバス側の基準クロックはNEC資料で最大約9.8304 MHz級であり、
 | JTAG/Configuration | 11 | 予約 |
 | 電源/GND/NC | 66 | 不可 |
 
-最新配布名30354のPDFは内部Titleが30353で、コネクタページを旧30353と目視比較した範囲ではコネクタ型番・端子配置に差は見つからなかった。ただし抽出CSVは文字抽出可能だった30353を正本としており、発注時には購入するB/Cデバイス版の最新回路図、実物シルク、Gowin IDEのDevice Versionを再照合する。
+最新配布名30354のPDFは内部Titleが30353で、コネクタページを旧30353と目視比較した範囲ではコネクタ型番・端子配置に差は見つからなかった。抽出CSVは文字抽出可能だった30353をreference正本とする。Mega reference topを将来改定する場合だけ、対象device版の最新回路図とGowin IDE Device Versionを再照合する。
 
-Mega SOM側はplugなので、キャリアには同じ極数のDF40 DS receptacleを3個使う。Hiroseは1.5/2.0/3.0/3.5/4.0 mmの嵌合高さを選択可能としている。現時点では3.0 mmを概算に使っただけであり、SOM裏面部品、Cバス筐体、固定具のクリアランス確認後に、100極2個と80極1個の完全なsuffixを同時に確定する。0.4 mm pitch三点嵌合は手はんだ対象にせず、工場SMTとAOIを前提にする。Hirose公称の挿抜寿命は30回なので、開発中の頻繁な交換にも注意する。
+比較時はMega SOM側のplugに対し、同じ極数のDF40 DS receptacleを3個用いる工場SMT/AOI前提のcarrierを想定した。これは不採用案の実装性根拠として保存し、コネクタsuffix、stack height、筐体クリアランスの確定作業は行わない。
 
 ## 3. 5 V-CMOSフロントエンド
 
@@ -96,7 +100,7 @@ Primerは0.5 A要求なので、初期0.5 A slotのheadroomは0 mA、後期0.8 A
 
 - Primer + 後期0.8 A slot: Cバス単独を既定として配線可能。ただし電流測定前は暫定。
 - Primer + 初期0.5 A slot: `AUX_5V`を使用。
-- Mega: 非Pro SOMの公式最大電流を確認できなかったため、試作は`AUX_5V`必須。Dockの12 V入力値やMega Proの5 V 110-1500 mA値を非Pro SOMへ転用しない。
+- Mega: 非Pro SOMの公式最大電流を確認できなかった。この未確認はreference史料に残すが、Mega試作/電源回路は作成しない。Dockの12 V入力値やMega Proの5 V 110-1500 mA値を非Pro SOMへ転用しない。
 - 外部5 V: ベンチ試験とFDDハーネスが使えない機種の代替。安定化5 Vを使い、GNDを先に接続し、hot-plugしない。
 
 PC-98のFDD電源は機種・ドライブでコネクタや信号束が異なり、V13の一次資料でpinoutを確定できなかった。一般的な3.5 inch/5.25 inch FDDコネクタの見た目や配色を根拠に極性を固定しない。基板側をキー付き2極`AUX_5V`へ統一し、対象機ごとに導通確認済みの短い分岐ハーネスを作る方式なら、キャリアをシリーズ共通に保てる。
@@ -109,11 +113,11 @@ PC-98のFDD電源は機種・ドライブでコネクタや信号束が異なり
 
 - Primer受動ターゲット: 約USD 43-97。
 - Primerをbus-master-readyにする追加論理: 約USD 2-4程度、ただしコネクタ/配線面積も増える。
-- Mega受動ターゲット: 約USD 91-199。SOMの商品variant差が大きく、発注前の再見積りが必要。
+- Mega受動ターゲット: 比較時の参考値は約USD 91-199。不採用hardware案の履歴であり、再見積りしない。
 
-価格は設計比較用であり注文保証ではない。Primerの下限は価格アーカイブ、上限はmarketplaceの単品在庫、MegaはSOM/Dock variantが混在するmarketplace帯である。LVCはDigiKey qty-1、Megaの100極3.0 mm receptacleはMouser qty-1を参照した。100極(51)には長納期表示がある一方、別suffix(58)には在庫例があり、めっき/packaging/互換条件をHirose図面で確認してから代替する。
+価格は2026-08-31の設計比較用であり注文保証ではない。Primerの下限は価格アーカイブ、上限はmarketplaceの単品在庫、MegaはSOM/Dock variantが混在するmarketplace帯を用いた。Mega関連値は不採用hardware案の履歴としてのみ保存する。
 
-Primerの204-pin SO-DIMM socketはfine-pitch SMTなので、生socketをユニバーサル基板へ直接手はんだする案にはしない。最初はsocket実装済みbreakout/adapter、またはsocketだけ実装サービスへ依頼した小型adapter PCBから2.54 mm headerへ引き出し、SSOP LVCと電源部をユニバーサル基板で組める。専用キャリアではsocketとLVCをまとめて工場実装する。Mega案は0.4 mm pitch三点の位置精度と半田検査が必要なため、PCBと部品実装を同じ工場へ依頼する。
+Primerの204-pin SO-DIMM socketはfine-pitch SMTなので、生socketをユニバーサル基板へ直接手はんだする案にはしない。最初はsocket実装済みbreakout/adapter、またはsocketだけ実装サービスへ依頼した小型adapter PCBから2.54 mm headerへ引き出し、SSOP LVCと電源部をユニバーサル基板で組める。専用PrimerキャリアではsocketとLVCをまとめて工場実装する。Mega carrier実装は行わない。
 
 ## 6. 推奨する判断と次の境界
 
@@ -123,9 +127,9 @@ Primerの204-pin SO-DIMM socketはfine-pitch SMTなので、生socketをユニ�
 2. 初回機能: 24-bitアドレス/16-bitデータを物理配線した受動target。論理は20-bit/8-bitへ縮退可能にする。
 3. Level shift: 5×`SN74LVC16245A` + 1×`SN74LVC07A`。DMA/bus master用は別stuffing optionとし、初回はdrive permitを恒久無効にする。
 4. 電源: Cバス+5 V既定 + キー付き`AUX_5V`。排他選択、PTC/ヒューズ、逆流防止、bulk/decouplingを持つ。
-5. Mega: 同じ論理pin contractを使う将来の工場実装キャリアとして保持する。
+5. Mega: 同じ論理pin contract/ABIを使うIP reference targetとして保持する。Mega用Cバスキャリアは作成しない。
 
-2026-08-31のQueue終了後、ユーザはPrimer 20KとMega 138Kをboard固有top-levelで差し替え、同一のboard-independent IP topを使う方針を決定した。初回実機はPrimer推奨を維持するが、IP/ABIはMegaでも同一にする。残るユーザ判断は「初回PCB/配線でbus-master向けLVCと配線を未実装、DNP、実装済みのどれにするか」である。FDDハーネスのPC側コネクタは、V13実機のコネクタ写真、電圧/導通確認、完全型番が得られてから確定する。これらは今回のQueueでは回路図へ進めず、次のP/Qで扱う。
+2026-08-31のQueue終了後、ユーザはPrimer 20KとMega 138Kが同一のboard-independent IP topを使う方針を決定した。2026-09-01に対応水準を更新し、作成する試作/専用ボードはPrimer 20Kだけに絞り、Mega 138KはIP/ABI referenceとしてのみサポートする。残るユーザ判断は「初回Primer PCB/配線でbus-master向けLVCと配線を未実装、DNP、実装済みのどれにするか」である。FDDハーネスのPC側コネクタは、V13実機のコネクタ写真、電圧/導通確認、完全型番が得られてから確定する。これらは将来ユーザが承認するP/Qで扱う。
 
 ## 7. 再現方法
 

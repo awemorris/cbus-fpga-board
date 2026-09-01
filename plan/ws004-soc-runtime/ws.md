@@ -1,6 +1,6 @@
 # WS004: AXI SoC・RISC-V・DRAMランタイム
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws004`
 
@@ -8,7 +8,7 @@ Status: planning
 
 Parent: [master plan](../master.md)
 
-Resume point: RISC-V優先順位の再整理後、共通`cbus_ip_top`内のCPU/boot候補と、Primer/Mega固有DDR wrapperへ接続する共通AXI memory境界を比較する。
+Resume point: RISC-V優先順位の再整理後、共通`cbus_ip_top`内のCPU/boot候補と、primary targetのPrimer 20K DDR wrapperへ接続する共通AXI memory境界を比較する。Mega 138KはIP interfaceのreferenceであり、実機SoC受入の対象にしない。
 
 ## Objective
 
@@ -34,7 +34,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 - WS002がTang、クロック、DDR wrapper、資源制約を提供する。
 - WS003がCバス由来AXI Managerを提供する。
 - WS005/WS006/WS007がCSR、IRQ、DMA、ユーザ領域を提供する。
-- CPU、fabric、firmware ABIはboard-independent `cbus_ip_top`へ置き、Primer/MegaのDDR controller差は同じAXI memory targetを提示するplatform wrapperへ閉じ込める。
+- CPU、fabric、firmware ABIはboard-independent `cbus_ip_top`へ置き、Primer DDR controllerは同じAXI memory targetを提示するplatform wrapperへ閉じ込める。Mega referenceにも論理interfaceは保つが、Mega用PCB/DDR実機検証をcompletion条件に含めない。
 
 ## Phase registry
 

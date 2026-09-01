@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p006`まで完了し、CバスI/Oから共通System CSRのID/version/scratch/statusまでPrimer/Mega論理topで自己検査済みである。次は依存が満たされた`ws005p001`通知契約へ進める。`ws003p004`はメモリcycle根拠後、`ws003p005`は試作hardware準備後に再開する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
+Resume point: `ws003p006`まで完了し、CバスI/Oから共通System CSRのID/version/scratch/statusまでPrimer primary topとMega reference topで自己検査済みである。`ws005p001`通知契約も完了し、次候補は`ws005p002`である。`ws003p004`はメモリcycle根拠後、`ws003p005`はPrimer試作hardware準備後に再開する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
 
 ## Objective
 
@@ -33,7 +33,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 
 - WS001の信号・タイミング・バイトレーン契約。
 - WS002の論理pad契約と安全リセット。BFMによる論理シミュレーションは物理試作より先行可能。
-- `cbus_target_engine`以下はPrimer/Mega共通の`cbus_ip_top`へ入り、board top、package pin、DDR/PLL primitiveへ依存しない。
+- `cbus_target_engine`以下はboard-independentな`cbus_ip_top`へ入り、board top、package pin、DDR/PLL primitiveへ依存しない。Primerがprimary、Megaはreference回帰とする。
 - WS005/WS004/WS007は安定したAXI4-Lite従属ポートを利用する。
 
 ## Phase registry
@@ -55,7 +55,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 - `axi4_to_axil_bridge`
 - `axil_guard_timeout` と `cbus_target_guarded_axil_subsystem`
 - `system_csr`
-- board-independent `cbus_ip_top`。Primer/Mega固有topから同一port contractでinstantiateする。
+- board-independent `cbus_ip_top`。Primer primary topとMega reference topから同一port contractでinstantiateする。
 
 ## Completion conditions
 

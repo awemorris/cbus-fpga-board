@@ -117,3 +117,5 @@ WS001 signal/platform and WS002 pinout validators: PASS
 Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でcompile warningなし。外付けpull-up、停止clock、configuration中のpin state、Gowin合成、電気適合は未検証であり、実機High-Zの証明とはしていない。
 
 Follow-up: Queue `Q20260901-010`で暫定`axil_error_target`をSystem CSRへ置き換えた。上記は`ws002p002`完了時点の実行記録である。
+
+Board policy follow-up: 2026-09-01にユーザがPrimer 20Kを唯一のprimary hardware targetに固定した。Mega top/CST/回帰はIP可搬性referenceとして保持するが、Mega用Cバスcarrier、回路図、PCB、PCBA、実機受入は後続スコープから外した。この更新は本Phaseの履歴的な両top検証結果を変更しない。

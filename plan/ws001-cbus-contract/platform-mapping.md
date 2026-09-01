@@ -4,6 +4,8 @@
 
 対象: `ws001p002` resume / Queue `Q20260831-004`
 
+運用更新: 2026-09-01以後、Primer mappingはprimary hardware target、Mega mappingは共通IP可搬性のreference資産とする。共通69 endpointと過去の検証結果は変更しないが、Mega用Cバスcarrier/PCBは作成しない。
+
 ## 1. 結論
 
 Primer 20KとMega 138Kのboard topから同じ`cbus_ip_top`をinstantiateできるよう、共通endpointを69本に固定し、両モジュールの保守的な3.3 V GPIOへ同じ順序で割り当てた。

@@ -1,20 +1,22 @@
-# Primer 20K / Mega 138K共通IPトップ境界
+# Primer 20K primary / board-independent IPトップ境界
 
-決定日: 2026-08-31
+初回決定: 2026-08-31
 
-状態: implemented logical boundary in `ws002p002`; production hardware wrapper未実装
+hardware target方針更新: 2026-09-01
+
+状態: implemented logical boundary in `ws002p002`; 2026-09-01にPrimer-only hardware方針へ更新; production hardware wrapper未実装
 
 ## 1. 決定
 
-Tang Primer 20KとTang Mega 138K非Proは、ボード固有top-levelを差し替えて使用する。Cバス機能、AXI subsystem、CSR、mailbox、将来のDMA/RISC-V/user IPは、ボード名やFPGA pinを持たない共通`cbus_ip_top`の下へ置く。
+Tang Primer 20Kを、回路図、PCB、製造、合成、実機検証、頒布の唯一のprimary board targetとする。Tang Mega 138K非Proは、共通IP/ABIがPrimerに密結合しないことを確かめるreference targetに限定する。Cバス機能、AXI subsystem、CSR、mailbox、将来のDMA/RISC-V/user IPは、ボード名やFPGA pinを持たない共通`cbus_ip_top`の下へ置く。
 
 ```text
-tang_primer20k_top                 tang_mega138k_top
-  physical pins / CST               physical pins / CST
-  Primer clock-reset-DDR wrapper    Mega clock-reset-DDR wrapper
-  LVC pin grouping + hard OE gate   LVC pin grouping + hard OE gate
-                \                    /
-                 +-- cbus_ip_top --+
+tang_primer20k_top (primary)       tang_mega138k_top (reference)
+  product pins / CST                existing pins / CST
+  product clock-reset-DDR wrapper   elaboration + ABI regression
+  product LVC/OE/PCB                no project carrier/PCB
+                  \                  /
+                   +-- cbus_ip_top --+
                        |
                        +-- cbus target / AXI bridge
                        +-- CSR / mailbox / DMA
@@ -22,18 +24,18 @@ tang_primer20k_top                 tang_mega138k_top
                        +-- future RISC-V subsystem
 ```
 
-ビルド時に選ぶのはboard target（top-level、対応constraint、必要なplatform/vendor wrapper）だけとし、`cbus_ip_top`以下のRTL source、register map、testbenchは同一にする。共通IP内で`PRIMER`/`MEGA`の`ifdef`分岐を作らない。
+プロジェクトのproduction buildはPrimer top/constraint/platform wrapperだけを使用する。Mega top/constraintはreference CI/build用に保持する。`cbus_ip_top`以下のRTL source、register map、testbenchは同一にし、共通IP内で`PRIMER`/`MEGA`の`ifdef`分岐を作らない。
 
 ## 2. Board-specific topの責務
 
 - FPGA package pin、I/O standard、drive、slew、専用clock pinをconstraintへ割り当てる。
-- Primer SO-DIMMまたはMega BTBの物理pinを、共通Cバス論理portへ対応付ける。
+- Primer SO-DIMMの物理pinを共通Cバス論理portへ対応付ける。Mega BTB mappingはreference topの回帰資産としてのみ保持する。
 - Gowin PLL、clock buffer、DDR controller、IOBUFなどdevice/board固有primitiveをwrapper内へ閉じ込める。
 - 外付けLVCのDIR/OE pin groupを物理配線へ対応付ける。
 - `cbus_ip_top`の`oe_req`を、そのまま外部へ出さず、`platform_ready && reset_released && clock_locked && bus_permit`でgateする。
 - FPGA configuration中はRTLに依存せず、LVC OE pull-up等の外付け回路でHigh-Zを保証する。
 - ボード固有LED、button、UART、configuration pinは、共通diagnostic interfaceへ必要なものだけ接続する。
-- DDRが異なる場合、共通IPへ同一のAXI memory target interfaceを提示する。
+- Primer DDR wrapperは共通IPへAXI memory target interfaceを提示する。Mega側はIP参照に必要な範囲で同じ論理interfaceを維持できるが、実機合格をproduction条件にしない。
 
 ## 3. Board-independent `cbus_ip_top`の責務
 
@@ -71,10 +73,10 @@ rtl/
     user_ip/...
   top/
     tang_primer20k_top.sv
-    tang_mega138k_top.sv
+    tang_mega138k_top.sv       # IP portability reference only
   platform/
     primer20k/...
-    mega138k/...
+    mega138k/...               # reference assets; no project PCB
   vendor/gowin/...
 constraints/
   primer20k/*.cst
@@ -87,16 +89,16 @@ sim/
 
 ## 6. 受入条件
 
-- 同一の`cbus_ip_top`を変更せず、Primer/Megaの両board targetがelaborateできる。
+- 同一の`cbus_ip_top`を変更せず、Primer production topとMega reference topがelaborateできる。
 - board名、package pin、DDR part名、PLL primitiveが`rtl/ip/`以下に現れない。
 - 共通IPの自己検査testを一度実行すれば、両topで共有できる機能の論理検証になる。
-- 各board topについて、reset/config/clock不成立時のLVC OEがHigh-Z側になるassertionまたは構造検査がある。
+- Primer topはreset/config/clock不成立時のLVC OEがHigh-Z側になるassertion、構造検査、将来の合成/実機検査を必須とする。Mega reference topは論理assertion/構造検査までを維持する。
 - capability差は黙ったport削除ではなく、定数、CSR、build assertionへ表れる。
 - register map、firmware ABI、user IP AXI境界はboard差し替えで変わらない。
 
 ## 7. 保留事項
 
 - 初回基板でbus-master用LVC/pinを実装済み、DNP、未配線のどれにするか。
-- Primer/MegaそれぞれのDDR controllerをいつ共通AXI境界へ接続するか。RISC-V優先度整理まではブロッカーにしない。
+- Primer DDR controllerをいつ共通AXI境界へ接続するか。RISC-V優先度整理まではブロッカーにしない。
 - Gowin IDEでflat port/CSTを合成し、device版とtiming closureを確認すること。
-- Mega非ProのB/C device版を別board targetに分ける必要があるか。
+- Mega reference資産の保守コストが過大になった場合、どの論理回帰水準までをIP supportとするか。物理carrierの追加は新たなユーザ判断なしに行わない。
