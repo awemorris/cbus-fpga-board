@@ -8,7 +8,7 @@ Status: in-progress (p005 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws005p005`でdefault-disabled Cバスalias、control fabric、mailbox/router共通IP統合を完了し、`ws003p004`でI/O/memory共通requestも完成した。次は詳細化済み`ws005p004`のCバスI/O/memory range-write frontendをQueueへ提案できる。
+Resume point: `ws005p005`でdefault-disabled Cバスalias、control fabric、mailbox/router共通IP統合を完了し、`ws003p004`でI/O/memory共通requestも完成した。`ws005p004`は詳細化済みだが、CPUからevent FIFO CSRへ到達する`ws004p002`の完了後にQueueへ提案する。
 
 ## Objective
 
@@ -43,7 +43,7 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 | [`ws005p001`](phase001-register-contract/phase.md) | completed | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
 | [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | completed | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
-| [`ws005p004`](phase004-cbus-write-event-frontend/phase.md) | planned after ws003p004/ws005p005 | 設定rangeへのCバスwriteをFIFOへcaptureしCPU external IRQへ通知する。 |
+| [`ws005p004`](phase004-cbus-write-event-frontend/phase.md) | planned after ws004p002 | 設定rangeへのCバスwriteをFIFOへcaptureしCPU external IRQへ通知する。 |
 | [`ws005p005`](phase005-cbus-alias-integration/phase.md) | completed | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
 
 ## Completion conditions

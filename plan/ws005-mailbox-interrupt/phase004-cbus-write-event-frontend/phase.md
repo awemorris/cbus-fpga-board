@@ -8,7 +8,7 @@ Phase ID: `p004`
 
 Combined ID: `ws005p004`
 
-Status: planned after ws003p004 and ws005p005
+Status: planned after ws004p002
 
 Parent: [WS005](../ws.md)
 
@@ -25,6 +25,7 @@ CバスのI/Oまたはmemory空間にある設定可能な範囲へのwriteを�
 - `ws003p004`: I/O/memory共通の`space, addr24, write, data16, be2, tag` request契約。
 - `ws005p005`: mailbox/routerの共通IP統合とAXI4-Lite control fabric。
 - `ws004p001`: user coreの`irq_external_i` level入力と単一AXI4 Manager。
+- `ws004p002`: CPU AXI4から`0x1000_4000-0x1000_4fff`へ到達するsingle-beat AXI4-to-AXI4-Lite routeと、Cバスから同領域を拒否するmanager policy。
 - `ws005p001/p002`: pending/mask/W1C、set-wins、CPU external IRQ集約。
 
 ## Architecture boundary
@@ -90,7 +91,7 @@ Event record論理field:
 
 ## AXI4-Lite CSR proposal
 
-Master mapの次の未使用control regionをPhase実行時に重複検査して割り当てる。仮候補は`0x1000_4000-0x1000_4fff`であり、確定addressはmachine-readable mapへ追加する。
+Master mapと`ws004p002`で予約した`0x1000_4000-0x1000_4fff`を使用し、Phase実行時にmachine-readable mapへ確定登録する。
 
 Register groups:
 

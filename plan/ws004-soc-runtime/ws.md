@@ -4,11 +4,11 @@
 
 WSID: `ws004`
 
-Status: in-progress (p001 completed)
+Status: in-progress (p001 completed; p002 detailed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws004p001`でuser core用50-port ABIとsafe stubを完了した。次は`ws005p005`のcontrol fabric統合後に`ws004p002`を詳細化し、単一CPU AXI4 Managerからbehavioral memory/BRAMとAXI4-Lite peripheralsへ接続する。Primer DDR wrapperはIP-complete gate後へ延期する。
+Resume point: `ws004p001`でuser core用50-port ABIとsafe stubを完了し、`ws005p005`のcontrol fabric統合後に`ws004p002`を詳細化した。次はp002をQueueへ提案し、単一CPU AXI4 Managerからbehavioral memory、共有AXI4-Lite control plane、Full/Lite各1本のuser target slotへ接続する。Primer DDR wrapperはIP-complete gate後へ延期する。
 
 ## Objective
 
@@ -17,6 +17,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 ## Scope
 
 - 32-bit AXI4 fabricと32-bit AXI4-Lite CSRバス
+- CPUから接続するAXI4 Full 1本、AXI4-Lite 1本のuser target slotとcompile-time safe disable
 - ユーザ設計RISC-Vコアを差し替える外部port ABI、stub、ブートROM/RAM、更新方法
 - board-independent behavioral memory/BRAM reference targetと、後段のGowin DDRコントローラwrapper/メモリ試験
 - CPU、DMA、Cバスターゲットの3 Manager調停
@@ -41,7 +42,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 | Phase | Status | Goal |
 | --- | --- | --- |
 | [`ws004p001`](phase001-riscv-soc-requirements/phase.md) | completed | ユーザ設計coreのAXI4/IRQ/control/status port ABIとsafe stubを実装する。 |
-| `ws004p002` | planned after p001/ws005p005 | 小規模AXI4/AXI4-Lite interconnect、decode、guard、timeoutを実装する。 |
+| [`ws004p002`](phase002-axi-interconnect/phase.md) | planned; ready for Queue proposal | 小規模AXI4/AXI4-Lite interconnect、共有control plane、Full/Lite user target slot、decode、guard、timeoutを実装する。 |
 | `ws004p003` | deferred until IP-complete gate | Primer DDR wrapper、初期化、march test、エラー記録を統合する。 |
 | `ws004p004` | planned after p001/p002 | CPU、ROM/BRAM reference memory、BSP、診断firmwareをboard-independent環境で起動する。 |
 | `ws004p005` | deferred after p003 | Cバス・CPU・DDR・CSRの同時アクセスと実機性能を検証する。 |
@@ -50,6 +51,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 
 - Managers: CPU=1 outstanding、Cバス=1、DMA=2〜4を初期上限候補とする。
 - Targets: 初期はbehavioral memory/BRAM、保護付きPC-98 memory/I/O aperture、AXI4-Lite bridge。DDRは同じmemory target境界へ後付けする。
+- User targets: `0x2000_0000-0x27ff_ffff`にAXI4 Full 1本、`0x2800_0000-0x2800_ffff`にAXI4-Lite 1本を予約する。各slotは既定無効で、無効時は外向きfan-outをgenerate除去可能にし、accessへlocal `DECERR`を返す。
 - Cバス由来ManagerからPC-98 apertureへのrouteはdenyする。
 - DMA共有領域は非キャッシュ、またはCPUキャッシュ無効から開始する。
 
@@ -57,6 +59,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 
 - クリーン環境からboard-independent reference SoCとRISC-V firmwareを再構築でき、後段でPrimer bitstreamを同じABIから生成できる。
 - CPUがDRAM、System CSR、mailbox、DMA CSR、ユーザ領域へ期待通りアクセスできる。
+- AXI4 Full 1本とAXI4-Lite 1本のuser target slotを個別に有効/無効化でき、無効時も予約accessが永久waitしない。
 - 不正領域、timeout、AXI errorが診断可能で、fabricが停止しない。
 - reference memory試験と、物理Phase後のDDR初期化/メモリ試験の結果が起動ごとに観測できる。
 - 合成後の資源、Fmax、クロック構成に余裕基準がある。

@@ -69,6 +69,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - RISC-Vコア内部はユーザが設計する。共通プロジェクトはcoreを選定・実装せず、`ws004p001`で単一32-bit AXI4 Manager、software/timer/external IRQ、reset/enable、boot/hart、diagnosticの外部I/Oとsafe stubだけを提供する。
 - ユーザ要件により、設定可能なCバスI/O/memory rangeへのaccepted writeをevent FIFOへcaptureし、既存interrupt routerからcoreのexternal IRQへ通知するfrontendを`ws005p004`として詳細化した。frontendはcore外に置き、reset defaultでは全range無効とする。
 - `ws004p001`を完了した。user core slot ABIを50 ports/3 parametersへ固定し、単一32-bit AXI4 Manager、software/timer/external IRQ、control/status/diagnosticと無動作stubを実装した。新規30 checksを含むHDL合計4179 checksと既存ABI/validatorがPASSした。
+- `ws004p002`を実行可能なP書へ詳細化した。CPU AXI4からreference memoryと共有AXI4-Lite control planeへ接続し、user IP用にAXI4 Full target 1本とAXI4-Lite target 1本を固定slotとして予約する。両slotは既定無効、無効時は外向きdatapathをgenerate除去可能にし、予約addressにはlocal `DECERR`を返す。
 
 ## 5. 固定済みの主要設計判断
 
@@ -81,7 +82,8 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - Cバスmemory targetは`CBUS_MEM_ENABLE=0`をsafe defaultとし、logical `SALE`保持値を含む24-bit addressを既存space付きCDC packetへ渡す。memoryは自然byte addressを使い、address bit 1で32-bit AXIのlower/upper halfwordを選ぶ。実memory base/sizeと物理`SALE`は別のphysical Phaseで決める。
 - MailboxのCバス公開窓は32-byte aligned parameterで、safe defaultでは無効とする。enable時だけ16 relative aliasを`0x1000_2xxx/3xxx`へ変換し、compound診断も一件ずつguard経由で実行する。logical host IRQがpendingでも物理CバスIRQ/OEは別Phaseまで駆動しない。
 - Cバス由来AXI4-Lite Managerは既定でSystem CSR `0x1000_0000-0x1000_0fff`だけを許可し、PC-98 host apertureをlocal DECERRにする。AXI timeout後はVALID handshakeの有無にかかわらず下流をquarantineし、subordinate reset後の明示的fault clearまで再利用しない。
-- ユーザIPは生のCバスへ接続せず、AXI-Lite、IRQ、DMA要求、必要に応じAXI-Streamまたは保護されたAXI Managerを使用する。
+- ユーザIPは生のCバスへ接続しない。CPU/fabricからaccessされる固定target slotとして32-bit AXI4 Full 1本と32-bit AXI4-Lite 1本を用意し、IRQ、DMA要求、必要に応じAXI-Streamを併用する。user IPから要求を発行するAXI Managerは別のguard/firewall契約なしに許可しない。
+- Full/Lite user target slotは個別のcompile-time parameterで既定無効とする。無効buildではuser側datapath/fan-outをgenerate除去可能にし、予約addressへのaccessはlocal `DECERR`で有限完了させる。
 - Cバスから入ったAXI要求がPC-98ホスト窓へ再入する経路は禁止し、再帰デッドロックを防ぐ。
 - 初期のCPUキャッシュは無効、またはDMA共有領域を非キャッシュとし、整合性問題を後段へ持ち越さない。
 - Primer 20Kをprimary hardware targetとし、Mega 138Kは共通IPのreference targetに限定する。Cバス/AXI/CSR/mailbox/DMA/user IP/将来RISC-Vはboard名を持たない共通`cbus_ip_top`以下へ置き、共通IP内にPrimer/Megaの条件コンパイルを持ち込まない。Mega reference topのelaboration/ABI回帰は維持するが、Mega用回路図・PCB・PCBA・実機保証は作成しない。
@@ -106,10 +108,10 @@ C-bus connector <-> LVC <-> cbus_pad_adapter
 
 AXI4 fabric
   managers: RISC-V CPU, DMA, C-bus target bridge
-  targets : DRAM, protected PC-98 apertures, AXI4-Lite bridge
+  targets : DRAM, protected PC-98 apertures, user AXI4 Full slot, AXI4-Lite bridge
 
 AXI4-Lite
-  system CSR, DMA CSR, interrupt router, mailbox, user IP region
+  system CSR, DMA CSR, interrupt router, mailbox, write-event CSR, user AXI4-Lite slot
 ```
 
 モジュール名と境界はP書で検証後に確定する。特定ベンダIPは `rtl/vendor/gowin/` 相当のラッパ内へ隔離する。
@@ -123,11 +125,15 @@ AXI4-Lite
 | `0x1000_1000-0x1000_1FFF` | DMA CSR | 記述子、状態、エラー |
 | `0x1000_2000-0x1000_2FFF` | Interrupt router | pending、mask、ack |
 | `0x1000_3000-0x1000_3FFF` | Mailbox | H2C/C2H FIFO、doorbell |
-| `0x2000_0000-0x2FFF_FFFF` | User IP | AXI-Liteを基本とする |
+| `0x1000_4000-0x1000_4FFF` | Cバスwrite-event CSR | `ws005p004`用、CPU-only |
+| `0x1000_5000-0x1000_FFFF` | Platform control予約 | software interrupt、timer等の後続割当 |
+| `0x2000_0000-0x27FF_FFFF` | User AXI4 Full slot 0 | compile-time既定無効、無効時`DECERR` |
+| `0x2800_0000-0x2800_FFFF` | User AXI4-Lite slot 0 | CPU-only、compile-time既定無効、無効時`DECERR` |
+| `0x2801_0000-0x2FFF_FFFF` | User expansion予約 | 未割当は`DECERR` |
 | `0x8000_0000-0x80FF_FFFF` | PC-98 memory aperture | AXIからのCバス・マスタ転送 |
 | `0x8100_0000-0x8100_FFFF` | PC-98 I/O aperture | AXIからのCバス・マスタ転送 |
 
-これは予約案であり、CPUブート構成、実DRAM容量、Cバスアドレス幅の確認後に凍結する。
+control pageとuser slotの分割は`ws004p002`のboard-independent ABI案とする。Queue承認後の実装でmachine-readable overlap検査を通して固定し、物理DRAM容量とCバス側resource割当は後続Phaseまで可変とする。
 
 ## 8. DMAモデル
 
@@ -159,10 +165,10 @@ AXI4-Lite
 | `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 詳細化済みp004 DMA/bus-master契約を調査し、p005実測はIP-complete gate後 | [WS001](ws001-cbus-contract/ws.md) |
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed; physical deferred) | MG001, MG002 | production wrapper、外付け回路、p003試作はIP-complete gate後 | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p004/p006 completed) | MG002 | logical I/O/memory target完了。p005実機と物理SALEはgate後 | [WS003](ws003-target-bridge/ws.md) |
-| `ws004` | AXI SoC・RISC-V・DRAMランタイム | in-progress (p001 completed) | MG003 | p005 control統合後にp002 AXI fabricを詳細化しreference SoCへ進む | [WS004](ws004-soc-runtime/ws.md) |
-| `ws005` | メールボックス・割り込み | in-progress (p005 completed) | MG003 | 詳細化済みp004 selected range-write frontendを次Queueへ提案可能 | [WS005](ws005-mailbox-interrupt/ws.md) |
+| `ws004` | AXI SoC・RISC-V・DRAMランタイム | in-progress (p001 completed; p002 detailed) | MG003 | 詳細化済みp002 AXI fabric/user slotsを次Queueへ提案可能 | [WS004](ws004-soc-runtime/ws.md) |
+| `ws005` | メールボックス・割り込み | in-progress (p005 completed) | MG003 | 詳細化済みp004 range-write frontendはws004p002完了後 | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | ws001p004後に従来DMA/bus-master BFM、WS004 reference memory後にlocal DMAを進める | [WS006](ws006-dma-bus-master/ws.md) |
-| `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
+| `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | ws004p002のFull/Lite slot契約とIRQ/DMA API安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
 | `ws008` | 専用PCB・製造・頒布 | proposed (deferred) | MG002, MG006 | IP-complete gate後にCB-U04調査、ユニバーサル試作、専用PCBへ進む | [WS008](ws008-production-board/ws.md) |
 
 ## 12. 依存関係
@@ -194,10 +200,11 @@ Verification evidence is produced inside every Workstream and is consumed by the
 
 1. 完了済み`ws004p001`のuser core AXI4/IRQ ABIとsafe stubを基準にし、並行可能な調査として`ws001p004`でDMA/bus-master契約を確定する。
 2. 完了済み`ws005p005`のmailbox alias/control fabricと`ws003p004`の24-bit memory targetを共通request/guard基準として維持する。
-3. `ws005p004` range-write frontendを共通I/O/memory requestと外部IRQへ統合し、p001の結果から`ws004p002` AXI interconnectと`ws004p004` CPU/ROM/BRAM reference SoCを詳細化・実装する。
-4. `ws006p002`従来DMA、`ws006p004`bus owner/master、`ws006p001`local DMAをBFM/reference memoryで検証する。
-5. WS007のuser IP ABI/SDKと統合回帰を完成し、IP-complete gateを判定する。
-6. gate後にだけ`ws002p003`、`ws003p005`、`ws004p003`、`ws006p003/p005`、WS008を再開する。
+3. 詳細化済み`ws004p002`でCPU AXI4 interconnect、CPU/Cバス共有control plane、Full/Lite user target slotを実装する。
+4. `ws004p002`のCPU-only event CSR routeを使って`ws005p004` range-write frontendを共通I/O/memory requestと外部IRQへ統合し、続いて`ws004p004` CPU/ROM/BRAM reference SoCを詳細化・実装する。
+5. `ws006p002`従来DMA、`ws006p004`bus owner/master、`ws006p001`local DMAをBFM/reference memoryで検証する。
+6. WS007のuser IP ABI/SDKと統合回帰を完成し、IP-complete gateを判定する。
+7. gate後にだけ`ws002p003`、`ws003p005`、`ws004p003`、`ws006p003/p005`、WS008を再開する。
 
 各行は新しいQueueの自動承認を意味しない。依存が満たされた有限のPhaseだけをQueue案として提示する。
 
