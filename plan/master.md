@@ -148,7 +148,7 @@ AXI4-Lite
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed) | MG001, MG002 | 次はGowin production wrapperと外付け安全回路を具体化し、測定環境準備後にp003立上げ | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | System CSRは完了。p004はメモリcycle根拠後、p005は試作hardware後 | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
-| `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | 次はp005の共通IP/AXI fabric/Cバスalias統合を実行可能なP書へ詳細化 | [WS005](ws005-mailbox-interrupt/ws.md) |
+| `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | p005は詳細化済み。default-disabled Cバスalias/AXI decoder/共通IP統合のQueue提案が可能 | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | DMAモード別の信号・安全条件を確定する | [WS006](ws006-dma-bus-master/ws.md) |
 | `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
 | `ws008` | 専用PCB・製造・頒布 | proposed | MG002, MG006 | 入手後のCB-U04を調査し、ユニバーサル基板試作の結果を反映する | [WS008](ws008-production-board/ws.md) |
