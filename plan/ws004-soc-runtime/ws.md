@@ -4,11 +4,11 @@
 
 WSID: `ws004`
 
-Status: planned
+Status: in-progress (p001 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: RISC-Vコア内部はユーザ設計とし、詳細化済み`ws004p001`で単一32-bit AXI4 Manager、software/timer/external IRQ、reset/enable、boot/hart、diagnosticを持つ外部port ABIと無動作stubを実装する。DDRなしのreference SoCを先に成立させ、Primer DDR wrapperはIP-complete gate後へ延期する。
+Resume point: `ws004p001`でuser core用50-port ABIとsafe stubを完了した。次は`ws005p005`のcontrol fabric統合後に`ws004p002`を詳細化し、単一CPU AXI4 Managerからbehavioral memory/BRAMとAXI4-Lite peripheralsへ接続する。Primer DDR wrapperはIP-complete gate後へ延期する。
 
 ## Objective
 
@@ -40,7 +40,7 @@ RISC-VファームウェアがAXI4上のDRAM、CSR、DMA、ユーザIPへアク�
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| [`ws004p001`](phase001-riscv-soc-requirements/phase.md) | planned; Queue提案可能 | ユーザ設計coreのAXI4/IRQ/control/status port ABIとsafe stubを実装する。 |
+| [`ws004p001`](phase001-riscv-soc-requirements/phase.md) | completed | ユーザ設計coreのAXI4/IRQ/control/status port ABIとsafe stubを実装する。 |
 | `ws004p002` | planned after p001/ws005p005 | 小規模AXI4/AXI4-Lite interconnect、decode、guard、timeoutを実装する。 |
 | `ws004p003` | deferred until IP-complete gate | Primer DDR wrapper、初期化、march test、エラー記録を統合する。 |
 | `ws004p004` | planned after p001/p002 | CPU、ROM/BRAM reference memory、BSP、診断firmwareをboard-independent環境で起動する。 |

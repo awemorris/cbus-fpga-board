@@ -8,7 +8,7 @@ Phase ID: `p001`
 
 Combined ID: `ws004p001`
 
-Status: planned; ready for Queue proposal
+Status: completed
 
 Parent: [WS004](../ws.md)
 
@@ -144,12 +144,12 @@ stubは機能coreの代替ではなく、SoC port/elaboration/safe-default回帰
 
 ## Work packages
 
-- [ ] interface正本とAXI signal tableを作る。
-- [ ] `riscv_core_ip_stub`を実装する。
-- [ ] port/schema validatorとstub BFMを追加する。
-- [ ] stubを使ったcompile/elaboration手順をWS004 testsへ用意する。
-- [ ] CPU unavailable capabilityとp002/p004 integration entry条件を記録する。
-- [ ] M/W/P/Qへ結果を同期する。
+- [x] interface正本とAXI signal tableを作る。
+- [x] `riscv_core_ip_stub`を実装する。
+- [x] port/schema validatorとstub BFMを追加する。
+- [x] stubを使ったcompile/elaboration手順をWS004 testsへ用意する。
+- [x] CPU unavailable capabilityとp002/p004 integration entry条件を記録する。
+- [x] M/W/P/Qへ結果を同期する。
 
 ## Verification plan
 
@@ -172,3 +172,29 @@ stubは機能coreの代替ではなく、SoC port/elaboration/safe-default回帰
 - user coreが複数AXI Manager、ACE/coherency、複数outstanding必須等を必要とする場合は、p002実装前にadapterまたはABI改定としてユーザへ戻す。
 - NMI/debug/vector-ID pinが必要になった場合は用途と互換性を示し、portを黙って追加しない。
 - core内部仕様が必要になった場合は本Phaseを拡大せず、ユーザ提供仕様を待つ。
+
+## Execution result
+
+2026-09-01 Queue `Q20260901-013`で完了。
+
+- ABI v1.0を単一32-bit AXI4 Manager、software/timer/external IRQ、clock/reset/enable、boot/hart、sleep/halted/trap diagnosticとして固定した。
+- machine-readable manifestは50 portsを、control 5、interrupt 3、status 5、AW 11、W 5、B 4、AR 11、R 6へ分類する。
+- `AXI_ADDR_WIDTH=32`、`AXI_DATA_WIDTH=32`、`AXI_ID_WIDTH=2`の3 parameterを固定した。
+- `riscv_core_ip_stub`は入力値にかかわらずAXI VALID/READYを0、payloadを0、haltedだけを1に保つ。stub buildはCPU unavailableであり、boot成功を表さない。
+- interface正本、CSV manifest、module/width/constant validator、Icarus BFM、再現scriptを追加した。
+- Cバスrange-write frontendはcore ABIへ混ぜず、依存後の`ws005p004`へ残した。
+
+再現コマンド:
+
+```sh
+plan/ws004-soc-runtime/tests/run_iverilog.sh
+```
+
+結果:
+
+```text
+tb_riscv_core_ip_stub: PASS: 30 checks
+PASS: RISC-V core slot ABI 50 ports / 3 parameters
+```
+
+Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でcompile warningなし。WS002 3377、WS003 656、WS005 116の既存HDL checksもPASSし、HDL合計4179 checksとなった。mailbox ABIのSV/C 24 checks、WS001 signal/platform/timing、WS002 pinout/portable-top validatorもPASSした。

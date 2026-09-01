@@ -66,6 +66,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - SALEはWS001 signal matrix上のA39世代多重信号だが、現行69 endpoint/board topには未収容である。memory target RTLではlogical `cbus_sale_i`と安全tieまでを扱い、Primerのpin/LVC/CST追加はIP-complete gate後の物理planningへ残す。
 - RISC-Vコア内部はユーザが設計する。共通プロジェクトはcoreを選定・実装せず、`ws004p001`で単一32-bit AXI4 Manager、software/timer/external IRQ、reset/enable、boot/hart、diagnosticの外部I/Oとsafe stubだけを提供する。
 - ユーザ要件により、設定可能なCバスI/O/memory rangeへのaccepted writeをevent FIFOへcaptureし、既存interrupt routerからcoreのexternal IRQへ通知するfrontendを`ws005p004`として詳細化した。frontendはcore外に置き、reset defaultでは全range無効とする。
+- `ws004p001`を完了した。user core slot ABIを50 ports/3 parametersへ固定し、単一32-bit AXI4 Manager、software/timer/external IRQ、control/status/diagnosticと無動作stubを実装した。新規30 checksを含むHDL合計4179 checksと既存ABI/validatorがPASSした。
 
 ## 5. 固定済みの主要設計判断
 
@@ -154,7 +155,7 @@ AXI4-Lite
 | `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 詳細化済みp004 DMA/bus-master契約を調査し、p005実測はIP-complete gate後 | [WS001](ws001-cbus-contract/ws.md) |
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed; physical deferred) | MG001, MG002 | production wrapper、外付け回路、p003試作はIP-complete gate後 | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | 詳細化済みp004 memory target RTLを先行し、p005実機はgate後 | [WS003](ws003-target-bridge/ws.md) |
-| `ws004` | AXI SoC・RISC-V・DRAMランタイム | planned (p001 detailed) | MG003 | p001でuser core外部AXI4/IRQ ABIとstubを作り、reference SoCへ進む | [WS004](ws004-soc-runtime/ws.md) |
+| `ws004` | AXI SoC・RISC-V・DRAMランタイム | in-progress (p001 completed) | MG003 | p005 control統合後にp002 AXI fabricを詳細化しreference SoCへ進む | [WS004](ws004-soc-runtime/ws.md) |
 | `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | p005共通IP統合後、p004 selected range-write frontendを追加する | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | ws001p004後に従来DMA/bus-master BFM、WS004 reference memory後にlocal DMAを進める | [WS006](ws006-dma-bus-master/ws.md) |
 | `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
@@ -187,7 +188,7 @@ Verification evidence is produced inside every Workstream and is consumed by the
 
 ### IP-complete gateまでの優先順
 
-1. `ws004p001`でuser-designed RISC-V coreの外部AXI4/IRQ ABIとsafe stubを作り、並行可能な調査として`ws001p004`でDMA/bus-master契約を確定する。
+1. 完了済み`ws004p001`のuser core AXI4/IRQ ABIとsafe stubを基準にし、並行可能な調査として`ws001p004`でDMA/bus-master契約を確定する。
 2. `ws003p004`の24-bit memory targetと`ws005p005`のmailbox alias/control fabric統合を、safe-defaultのboard-independent RTLとして実装する。
 3. p001の結果から`ws004p002` AXI interconnectと`ws004p004` CPU/ROM/BRAM reference SoCを詳細化・実装し、`ws005p004` range-write frontendを外部IRQへ統合する。
 4. `ws006p002`従来DMA、`ws006p004`bus owner/master、`ws006p001`local DMAをBFM/reference memoryで検証する。

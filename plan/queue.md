@@ -4,7 +4,7 @@
 
 Queue ID: `Q20260901-013`
 
-Queue status: proposed; awaiting user authorization
+Queue status: finished
 
 Parent: [master plan](master.md)
 
@@ -18,7 +18,7 @@ Parent: [master plan](master.md)
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws004p001` | [phase.md](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md) | pending | awaiting explicit approval of this Queue proposal |
+| 1 | `ws004p001` | [phase.md](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md) | completed | 2026-09-01 user explicitly approved execution |
 
 ## 3. Included
 
@@ -50,4 +50,15 @@ Parent: [master plan](master.md)
 
 ## 7. Authorization boundary
 
-このQ書は提案であり、まだRTL実装を許可しない。ユーザが`Q20260901-013`または`ws004p001`の実行を明示承認した後に、Queue statusをrunningへ変更して着手する。
+2026-09-01にユーザが「実行してください」と指示し、本Queueの実行を承認した。
+
+## 8. Execution result
+
+`ws004p001` completed。
+
+- user-owned `riscv_core_ip`と同形にする`riscv_core_ip_stub`を実装した。
+- ABIは50 ports、3 parameters、単一32-bit AXI4 Manager、三machine-mode IRQ、control/status/diagnosticである。
+- interface正本、CSV manifest、Python validator、30-check Icarus BFMを追加した。
+- stubは全AXI request/response acceptanceをinactive、payloadを0、haltedを1に固定し、入力変化でside effectを発生しない。
+- 新規と既存のHDL合計4179 checks、mailbox ABI 24 checks、WS001/WS002 validatorがすべてPASSした。
+- Cバスselected range-write frontendはP書だけを詳細化済みであり、依存する`ws003p004/ws005p005`後へ残した。
