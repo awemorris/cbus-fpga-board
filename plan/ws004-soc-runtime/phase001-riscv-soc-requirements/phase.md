@@ -1,4 +1,4 @@
-# ws004p001: RISC-V SoC IP要件・コア選定基準
+# ws004p001: ユーザ設計RISC-Vコア外部interface・stub
 
 最終更新: 2026-09-01
 
@@ -8,119 +8,167 @@ Phase ID: `p001`
 
 Combined ID: `ws004p001`
 
-Status: planned; ready for research Queue proposal
+Status: planned; ready for Queue proposal
 
 Parent: [WS004](../ws.md)
 
+## User decision
+
+RISC-Vコア内部はユーザが設計する。エージェントはpipeline、decoder、ALU、register file、CSR/trap内部、ISA拡張、core用toolchain、既存core比較を設計しない。本Phaseはユーザ実装コアを差し替え接続する外部I/O契約と、無動作stubだけを作る。
+
 ## Objective
 
-基板、DDR controller、特定Tang品種の実装より先に、CバスFPGA IP全体へ必要なRISC-V CPU/SoCの機能、ABI、boot/reset、bus、interrupt、memory、toolchain、資源条件を定義し、後続RTLが参照できるコア選定基準とreference SoC契約を作る。
+ユーザ設計RISC-VコアとCバスFPGA SoCの間に、board/DDR/vendor非依存の固定port ABIを用意する。単一32-bit AXI4 Manager、machine-mode割り込み、clock/reset/enable、boot/hart情報、最小diagnosticを定義し、コア内部を知らずにSoC fabricとIcarus回帰を構築できるようにする。
 
-## Scope
+## Ownership boundary
 
-- 必須/任意RISC-V ISA拡張、privilege、例外、interrupt、timer、debug要件。
-- CPU側AXI4/AXI4-Lite manager境界、outstanding、unaligned、error/timeoutの扱い。
-- reset vector、boot ROM、on-chip RAM、firmware image、再書込み/復旧方法。
-- System CSR、mailbox、interrupt router、DMA、user IP、将来host apertureとのmemory map/ownership。
-- キャッシュ/coherency/atomicの初期方針とDMA共有領域。
-- clock/reset/CDC、simulation、formal/assertion、synthesis portabilityの要件。
-- GCC/LLVM/binutils等toolchain、license、再現build、BSP、diagnostic firmwareの受入条件。
-- 候補soft coreの一次資料に基づく比較と推奨案。
-- Primer 20Kを資源上限のprimary reference、Mega 138Kを論理interface referenceとするが、共通IPにboard名を持ち込まない。
+User-owned core:
 
-## Excluded
+- 命令fetchとdata accessを一つのAXI4 Managerへ調停する処理。
+- ISA、pipeline、CSR、trap entry/return、割り込みmask/priority、WFI。
+- AXI errorをinstruction/load/store access faultへ変換する処理。
+- cache、misaligned access、debugを実装する場合のcore内部方針。
 
-- RISC-V core、interconnect、boot ROM、firmwareの実装。
-- Gowin DDR/PLL primitive、Primer DDR pin、timing closure、bitstream生成。
-- Mega carrier/PCB/実機SoC受入。
-- Linux、MMU、cache coherency、高性能SMPを初版必須にすること。
-- 候補比較なしにライセンス/保守性不明のコアを確定すること。
+Project-owned wrapper/SoC:
+
+- AXI4 interconnect、address decode、AXI4-Lite bridge、guard/timeout。
+- boot ROM、BRAM/behavioral memory、後段のDDR target。
+- software interrupt、timer interrupt、32-source external interrupt router。
+- core reset sequencing、memory map、status収集、stub/BFM/validator。
+- Cバスwrite-event frontend。これはcore pinを増やさずexternal interruptへ集約する。
+
+coreはCバスpin、Primer/Mega名、Gowin primitive、mailbox event IDを直接持たない。
+
+## Fixed module parameters and non-AXI I/O
+
+stub module名は`riscv_core_ip_stub`、ユーザ差替えmoduleの契約名は`riscv_core_ip`とする。両者のparameter/port ABIをvalidatorで照合する。
+
+| Name | Dir | Width | Meaning |
+| --- | --- | ---: | --- |
+| `core_clk_i` | in | 1 | coreとCPU AXI Managerの共通clock。 |
+| `core_rst_n_i` | in | 1 | active-Low core reset。assert中は全AXI VALID/READYとdiagnostic pulseをinactiveにする。 |
+| `core_enable_i` | in | 1 | 1で実行許可。0はidle時の新規transaction禁止。緊急停止にはresetを使う。 |
+| `boot_addr_i` | in | 32 | reset解除時にsampleする最初のfetch address。 |
+| `hart_id_i` | in | 32 | platformが与えるhart ID。初期SoCは0固定。 |
+| `irq_software_i` | in | 1 | machine software interrupt pending (`MSIP`) level。 |
+| `irq_timer_i` | in | 1 | machine timer interrupt pending (`MTIP`) level。 |
+| `irq_external_i` | in | 1 | machine external interrupt pending (`MEIP`) level。 |
+| `core_sleep_o` | out | 1 | WFI等のsleep level。clock停止要求として直接使わない。 |
+| `core_halted_o` | out | 1 | reset/disable/debug等でinstructionを進めない観測level。 |
+| `core_trap_valid_o` | out | 1 | trap entryの一clock diagnostic pulse。未実装coreは0固定可。 |
+| `core_trap_cause_o` | out | 32 | trap cause snapshot。未実装coreは0固定可。 |
+| `core_trap_pc_o` | out | 32 | trap前PC snapshot。未実装coreは0固定可。 |
+
+`boot_addr_i`と`hart_id_i`は`core_rst_n_i=0`中から安定させ、core実行中に変更しない。NMI、debug request、vector ID、`mtime[63:0]`入力は初期ABIに含めない。timer値はproject-owned MMIO timerから読む。
+
+## AXI4 Manager port
+
+一つの32-bit AXI4 Managerを`m_axi_*` prefixで公開する。初期parameter:
+
+| Parameter | Default | Constraint |
+| --- | ---: | --- |
+| `AXI_ADDR_WIDTH` | 32 | 初期ABIでは32固定。 |
+| `AXI_DATA_WIDTH` | 32 | 初期ABIでは32固定、`WSTRB`は4 bit。 |
+| `AXI_ID_WIDTH` | 2 | ID 0〜3。stubは0固定、初期fabricは少なくともread/write各1 outstandingを受理する。 |
+
+公開channel:
+
+```text
+AW: m_axi_awid_o, awaddr_o, awlen_o, awsize_o, awburst_o,
+    awlock_o, awcache_o, awprot_o, awqos_o, awvalid_o, awready_i
+ W: m_axi_wdata_o, wstrb_o, wlast_o, wvalid_o, wready_i
+ B: m_axi_bid_i, bresp_i, bvalid_i, bready_o
+AR: m_axi_arid_o, araddr_o, arlen_o, arsize_o, arburst_o,
+    arlock_o, arcache_o, arprot_o, arqos_o, arvalid_o, arready_i
+ R: m_axi_rid_i, rdata_i, rresp_i, rlast_i, rvalid_i, rready_o
+```
+
+WidthはAXI4に従い、ID=`AXI_ID_WIDTH`、address=32、LEN=8、SIZE=3、BURST=2、LOCK=1、CACHE/QOS=4、PROT=3、data=32、WSTRB=4、RESP=2とする。USER/REGION channelは初期ABIへ含めない。
+
+### Supported AXI subset
+
+- `INCR` burstだけを必須とし、`FIXED/WRAP`は発行しない。
+- 1、2、4-byte beatを許し、4-byte wordを基本とする。transactionは4 KiB boundaryを跨がない。
+- `AWLOCK/ARLOCK=0`。exclusive/locked accessとatomic extensionは初期対象外。
+- AXI4-Lite CSR/MMIOへのaccessはsingle beat (`LEN=0`, `LAST=1`) とする。
+- instruction fetchは`ARPROT[2]=1`、data/MMIOは`AxPROT[2]=0`として区別する。
+- `VALID`とpayloadは`READY` handshakeまで不変。response READYをassertした後はhandshakeまで保持する。
+- write address/dataの独立handshakeを許容し、B response前にwrite完了とみなさない。
+- `BRESP/RRESP=SLVERR/DECERR`をcore内部で該当access faultへ変換する。
+- 初期fabric保証はread/write各1 outstandingである。より多いoutstandingや複数IDを要求するuser coreは、p002詳細化前に上限を申告する。
+- reset assert中は`AWVALID/WVALID/ARVALID/BREADY/RREADY=0`。coherent SoC resetで未完transactionを破棄し、reset前responseを新しい実行へ適用しない。
+
+## Interrupt pins
+
+必須interruptはRISC-V machine-mode pending classへ対応するactive-high同期level三本だけとする。
+
+| Pin | Source outside core | Hold/clear rule |
+| --- | --- | --- |
+| `irq_software_i` | AXI4-Lite software-interrupt CSR | firmwareがCSRをclearするまでHigh。 |
+| `irq_timer_i` | timer/compare block | compare条件解除または再設定までHigh。 |
+| `irq_external_i` | `mailbox_interrupt_subsystem.cpu_irq_active` | routerの有効pending sourceをW1CするまでHigh。 |
+
+- 三入力は`core_clk_i`へ同期済みのlevelであり、pulseを直接入力しない。
+- mailbox、guard、DMA、Cバスwrite event、user IPの個別sourceは32-source routerへlatchし、一本の`irq_external_i`へ集約する。
+- core内部の`mie/mip/mstatus/mtvec`、priority、trap entry/returnはuser-ownedである。
+- 外部routerのevent IDはcore port ABIへ露出しない。firmwareがAXI4-Lite pending/active CSRを読む。
+- reset中に外部pendingは保持可能であり、core resetでCバス/mailbox/routerをclearしない。
+
+## Stub behavior
+
+`rtl/cpu/riscv_core_ip_stub.sv`は全portを宣言し、次の無動作状態を保つ。
+
+- 全AXI request VALID、BREADY、RREADYを0。
+- address/data/control/IDを0、`WLAST=0`。
+- `core_sleep_o=0`、`core_halted_o=1`。
+- trap diagnosticを0。
+- AXI input、interrupt、boot/hart入力に依存してside effectを起こさない。
+
+stubは機能coreの代替ではなく、SoC port/elaboration/safe-default回帰専用である。stubを使うbuildはSystem CSR capabilityにCPU unavailableを表示し、RISC-V動作試験をPASS扱いにしない。
 
 ## Required outputs
 
-- `riscv-soc-requirements.md`: MUST/SHOULD/MAY、根拠、検証方法、後続Phaseの対応先。
-- `riscv-core-comparison.csv`: ISA、bus、interrupt、debug、license、toolchain、simulation、資源/Fmax公開値、maintenance、integration effort。
-- `riscv-boot-reset-contract.md`: reset domains、vector、ROM/RAM、image layout、fault/recovery、observable boot stages。
-- `soc-memory-map.md`または既存Master mapの詳細契約: owner、access、cacheability、side effect、未割当region。
-- `soc-interface-contract.md`: CPU manager、AXI-Lite CSR、IRQ vector、clock/reset、reference memory model。
-- コア推奨案、代替案、ユーザ判断が必要な残点。
+- `riscv-core-interface.md`: parameter、全port、AXI subset、interrupt/reset/diagnostic契約の正本。
+- `rtl/cpu/riscv_core_ip_stub.sv`: 上記のcompile/elaboration stub。
+- `tests/validate_riscv_core_interface.py`: module名、parameter、port名、方向、width、stub safe constantsを検査する。
+- `tests/tb_riscv_core_ip_stub.sv`: reset/enable/IRQ/AXI inputを変化させても無動作であることをIcarus検査する。
+- p002/p004へ渡すintegration checklist。
 
-## Requirements questions to resolve
+## Excluded
 
-### CPU and ISA
-
-- RV32を初期基準とする妥当性、`I/M/C`等の必須/任意区分。
-- machine modeだけで足りるか、CSR/exception/interruptに必要な最小privilege。
-- misaligned access、illegal instruction、bus error、watchdog/resetの可観測性。
-- stable upstream、license、改変配布、vendor lock-in、Icarus/Verilator等での検証可能性。
-
-### Bus and memory
-
-- CPU instruction/data interfaceをAXI4へ直接するか、native bus adapterを許容するか。
-- 初期outstanding上限、burst、ID幅、32-bit data/address、AXI4-Lite bridge境界。
-- DDRなしでも進められるbehavioral memory/BRAM reference targetと、後のPrimer DDR targetの同一interface。
-- 初期はcache disabledまたはDMA共有領域non-cacheとし、cache/coherencyを後続へ隔離する条件。
-- Cバス由来Managerからhost apertureへの再入禁止と、CPU/DMAだけに許すroute policy。
-
-### Boot, firmware and diagnostics
-
-- reset vector、immutable ROM、mutable RAM、firmware link address、stack、trap vector。
-- boot stageをSystem CSR/mailbox/UART等から観測する方法。UARTを必須物理依存にしない。
-- firmware ABI header、linker script、startup、trap、MMIO access、mailbox loopbackの最小成果。
-- toolchain version lock、build script、binary/ELF/mapの生成、clean build再現性。
-
-### Interrupt and control
-
-- `ws005p001`の32-source logical routerをCPU interruptへ接続する方式。
-- mailbox、guard fault、DMA、user IRQ、timer、software interruptのpriority/ack/level-pulse変換責務。
-- debug halt中またはCPU reset中でもCバスtarget/mailboxが安全に動く独立性。
-
-## Selection process
-
-1. 要件をMUST/SHOULD/MAYとacceptance testへ変換する。
-2. 少なくとも複数の現行候補を公式repository/documentation/licenseで比較する。
-3. Primer 20Kの公開資源上限に対する保守的budgetを作り、core単体だけでなくfabric/BRAM/mailbox/DMA余白を含める。
-4. vendor-neutral simulationと、必要ならGowin synthesis可否を別列で評価する。
-5. reference core推奨案と代替案を記録する。製品スコープや配布条件を変える選択はユーザ判断へ戻す。
-
-## Initial acceptance principles
-
-- reference SoCはDDRなしのbehavioral memoryまたはon-chip RAMで全RTL/firmware回帰を実行できる。
-- CPU reset/停止がCバスinput pathのHigh-Z安全性を壊さない。
-- AXI error/timeout/illegal accessでCPU/fabricが無限停止せず、trapまたはdiagnostic stateを観測できる。
-- CPUがSystem CSR、mailbox/router、将来DMA/user IPへowner policyどおりアクセスできる。
-- firmwareとRTL ABIは機械可読定数から生成または照合される。
-- Primer DDR wrapperは同じmemory target契約へ後付けでき、共通IPにGowin primitiveを入れない。
+- user RISC-V core内部RTLとそのtestbench。
+- AXI interconnect、timer/software-interrupt CSR、boot ROM、firmware実装。
+- Cバスwrite-event frontend本体（`ws005p004`）。
+- Gowin DDR/PLL、Primer pin、Mega carrier、PCB、実機。
+- core ISA、privilege level、cache、debug、license、toolchainの選定。
 
 ## Work packages
 
-- [ ] 既存M/WS003/WS005/WS006/WS007からSoC要求と未解決点を抽出する。
-- [ ] MUST/SHOULD/MAYとacceptance testを作成する。
-- [ ] core/toolchain/license/maintenance/interface候補を一次資料で比較する。
-- [ ] boot/reset、memory map、CPU bus、IRQ、reference memory interfaceを契約化する。
-- [ ] Primer向け保守的resource budgetとboard-independent境界を作る。
-- [ ] 推奨core/代替案、残る人間判断、後続p002/p004のentry条件を提示する。
-- [ ] M/W/Pへ優先順とDDR/physical defer方針を同期する。
+- [ ] interface正本とAXI signal tableを作る。
+- [ ] `riscv_core_ip_stub`を実装する。
+- [ ] port/schema validatorとstub BFMを追加する。
+- [ ] stubを使ったcompile/elaboration手順をWS004 testsへ用意する。
+- [ ] CPU unavailable capabilityとp002/p004 integration entry条件を記録する。
+- [ ] M/W/P/Qへ結果を同期する。
 
-## Verification
+## Verification plan
 
-- 各MUST要件に検証方法と後続Phaseが割り当てられている。
-- memory mapにoverlapがなく、各regionにowner、bus種別、cacheability、error policyがある。
-- boot/reset stateは有限で、失敗時の観測・復旧条件がある。
-- core比較のlicense/interface/resource/toolchain欄にsourceがあり、unknownを空欄で隠さない。
-- board-independent reference memoryとPrimer DDR wrapperの境界が同一interfaceで説明できる。
-- `ws004p002`と`ws004p004`を重要な設計発明なしに詳細化できる。
+- SystemVerilog 2012、Icarus Verilog 12.0、`-Wall -Wimplicit`でwarningなし。
+- reset、enable、boot/hart、三IRQ、全AXI inputを変化させてもstubがrequest/responseを受理せず、safe outputを維持する。
+- AXI4全channelの方向/widthと、`AXI_ADDR/DATA/ID_WIDTH` parameter整合をvalidatorで検査する。
+- user差替えmodule用port manifestとstubが一致する。
+- 既存WS002 portable topとWS003/WS005 HDL回帰に影響がない。
 
 ## Completion conditions
 
-- RISC-V/SoC IPの要件、acceptance、interface、boot/reset、memory mapがレビュー可能な文書になっている。
-- 候補コアの比較と推奨案が、license、再現性、資源、統合リスクを含む。
-- DDR/PCB/実機を待たずにreference SoC RTLへ進めるentry条件が定義されている。
-- product scopeや配布条件に関わる未解決選択は明示され、実装で暗黙決定されない。
+- ユーザcoreが同じ外部I/Oを実装すれば、内部設計を変更・公開せずSoCへ差し替えられる。
+- AXI4、software/timer/external IRQ、reset/enable、boot/hart、diagnosticの意味が一意である。
+- coreがCバス、Gowin、board、mailbox event IDへ依存しない。
+- stubがsafe-defaultでelaborateし、validator/BFM/既存回帰がPASSする。
+- core内部仕様や実装を決めずに完了できる。
 
 ## Interruption and resume policy
 
-- 候補のlicense、配布条件、maintenanceが確認できない場合は採用扱いにせず代替候補を残す。
-- 公開資源値がない場合は推測値を確定値にせず、後続の最小合成probeを再開条件にする。
-- core選択がユーザの製品方針を変える場合は、比較と推奨までで止めて判断を求める。
-- DDR/board情報が不足していてもreference memory要件の詳細化は継続する。
+- user coreが複数AXI Manager、ACE/coherency、複数outstanding必須等を必要とする場合は、p002実装前にadapterまたはABI改定としてユーザへ戻す。
+- NMI/debug/vector-ID pinが必要になった場合は用途と互換性を示し、portを黙って追加しない。
+- core内部仕様が必要になった場合は本Phaseを拡大せず、ユーザ提供仕様を待つ。

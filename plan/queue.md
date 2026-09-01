@@ -2,78 +2,52 @@
 
 最終更新: 2026-09-01
 
-Queue ID: `Q20260901-012`
+Queue ID: `Q20260901-013`
 
-Queue status: finished
+Queue status: proposed; awaiting user authorization
 
 Parent: [master plan](master.md)
 
-## 1. 今回の実行許可
+## 1. Queue proposal
 
-`ws005p002`のstandalone mailbox FIFO / interrupt router RTLと自己検査BFMを実装する。実CPU、物理CバスIRQ、I/O base、共通IP統合に依存しない範囲だけを対象とする。
+`ws004p001`だけを実行し、ユーザ設計RISC-VコアをSoCへ差し替える外部I/O契約、safe stub、port validator、自己検査BFMを作る。
 
-2026-09-01にユーザが前Queue終了後の次候補`ws005p002`へ「続けてください」と指示し、Queue案提示後に「実行をお願いします」と明示承認した。
+ユーザはRISC-Vコア内部を自分で設計し、プロジェクト側にはAXI4・割り込みその他の必要port詳細化とstub作成を求めた。本Queueはそのうち、依存がなく単独検証できるcore slot境界だけを有限範囲にする。
 
-## 2. Queue作成前の確認事項
-
-- [x] Master Planは承認済みである。
-- [x] `ws005p001`でABI v1の31 register、17 event source、FIFO/同時操作規則が固定済みである。
-- [x] `ws003p006`でAXI4-Lite subordinate実装とBFMの参照構造が存在する。
-- [x] 物理IRQ/I/O baseを決めずにstandalone RTLの完了条件を検証できる。
-- [x] Primer 20K primary / Mega 138K IP referenceの方針に影響しないboard-independent Phaseである。
-- [x] ユーザがQueue境界でのcommitと`git push origin master`を許可している。
-
-## 3. Execution registry
+## 2. Execution registry
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws005p002` | [phase.md](ws005-mailbox-interrupt/phase002-mailbox-router-rtl/phase.md) | completed | 2026-09-01 user explicitly approved execution |
+| 1 | `ws004p001` | [phase.md](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md) | pending | awaiting explicit approval of this Queue proposal |
 
-## 4. 実行する範囲
+## 3. Included
 
-- depth 8、width 32のH2C/C2H FIFO、staging、peek/pop、occupancy/error stickyを実装する。
-- 32-source CPU/host interrupt router、mask、W1C、set-wins、valid-source maskを実装する。
-- doorbell pending/coalescingとmailbox eventからrouter sourceへの接続を実装する。
-- AW/W独立受理、WSTRB、B/R backpressure、`SLVERR`/`DECERR`を含むAXI4-Lite subordinateを実装する。
-- FIFO全状態のpush/pop、pending/mask/W1C/set/reset衝突、doorbell/error、AXI protocolの自己検査BFMを追加する。
-- ABI生成照合、WS002/WS003 HDL回帰、WS001/WS002 validatorを再実行する。
-- 実績と検証数をM/W/P/Qへ同期する。
+- 単一32-bit AXI4 Managerの全AW/W/B/AR/R port、parameter、対応subsetを契約化する。
+- software/timer/external interruptのactive-high level入力を契約化する。
+- clock、active-Low reset、enable、boot address、hart ID、sleep/halted/trap diagnosticを契約化する。
+- 全AXI request/responseをinactiveに保つ`riscv_core_ip_stub`を実装する。
+- module/port/width/constantを検査するvalidatorとIcarus自己検査BFMを追加する。
+- stub使用時にCPU unavailableと扱うintegration checklistを記録する。
+- 既存WS002/WS003/WS005回帰と構造validatorを再実行する。
+- 実行結果をM/W/P/Qへ同期し、切れ目でcommit/pushする。
 
-## 5. 対象外
+## 4. Excluded
 
-- `cbus_ip_top`とAXI fabricへの統合。
-- Cバス32-byte相対alias decoder、物理I/O base、IRQ番号、IRQ OE/極性。
-- RISC-Vコア、firmware、PC-98診断プログラム。
-- DMA/user IP本体、回路図、PCB、Gowin合成、実機試験。
+- ユーザ所有RISC-V coreのpipeline、ISA、CSR/trap、cache、debug、toolchain、firmware。
+- AXI interconnect、AXI4-to-AXI4-Lite bridge、timer/software-interrupt CSR、boot ROM。
+- `ws005p004` Cバスrange-write frontendのRTL。P書の詳細化まで済んでいるが、`ws003p004/ws005p005`未完のため今回Queueへ入れない。
+- Primer DDR/Gowin primitive、回路図、PCB、実機。
 
-## 6. 主な依存関係と不確実性
+## 5. Dependencies and uncertainty
 
-- 正本は`mailbox-register-map.json`と`mailbox-interrupt-contract.md`であり、ABI変更は本Queueで行わない。
-- AXI manager identityがないためowner制限は後続interconnect/aliasの責務とし、standalone subordinateは全registerを同一のAXI portへ公開する。
-- 同一clock domain内で実装し、非同期event/FIFO化は必要になった後の別Phaseとする。
-- 契約に矛盾が見つかった場合はRTL側で推測せず、`ws005p001`改定の判断点として`uncleared`へ戻す。
+- user coreはまだ存在しなくてもstubとport manifestだけで完了できる。
+- 初期fabric保証はread/write各1 outstanding、INCR burst、32-bit dataとする。user coreが複数Manager、coherency、より多いoutstanding、NMI/debug pinを必須とする場合はABIを推測変更せず`uncleared`として判断点を記録する。
+- stubは機能CPUではなく、RISC-V bootやfirmware testを成功扱いにしない。
 
-## 7. 完了判定
+## 6. Completion decision
 
-[ws005p002 Phase Book](ws005-mailbox-interrupt/phase002-mailbox-router-rtl/phase.md)のCompletion conditionsを満たし、新規と既存の全回帰がPASSした場合に`completed`とする。合理的に完了できない場合は、理由と再開条件を記録して`uncleared`とする。
+[ws004p001 Phase Book](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md)のcompletion conditionsを満たし、新規validator/BFMと既存回帰がPASSした場合に`completed`とする。合理的に完了できない場合は理由、得られたinterface情報、再開条件を記録して`uncleared`とする。
 
-## 8. 実行結果
+## 7. Authorization boundary
 
-`ws005p002` completed。
-
-- 8-entry×32-bitの同期FIFO coreを実装し、empty/middle/fullのpush/pop同時操作とset-wins stickyを固定した。
-- Mailboxとinterrupt routerを別のAXI4-Lite subordinate moduleにし、二つのportとevent接続を持つstandalone subsystemを実装した。
-- ABI v1の31 register、H2C/C2H ordering、overflow/underflow、W1C/mask/set-wins、doorbell coalescing、AW/W独立受理、B/R backpressure、`SLVERR`/`DECERR`、reset/recoveryを検証した。
-- Mailboxのerror stickyとrouter pending、doorbell pendingとcoalesced stickyを別々にclearできることを確認した。
-- 生成済みABI packageのbase、ID/CAP、valid-source mask、event maskをRTLが直接参照する。
-- 物理IRQ、I/O base、Cバスalias、RISC-V、共通IP統合は対象外のままである。
-
-検証結果:
-
-- 新規WS005 HDL: 116 checks PASS。
-- 既存WS003/WS002 HDL: 656 + 3377 checks PASS。HDL合計4149 checks PASS。
-- ABI/schema/generator: PASS。SV/C定数は各12 checks PASS。
-- WS001 signal/platform、WS002 pinout/constraint/portable-top validator: PASS。
-- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。
-
-次は`ws005p005`を実行可能なP書へ詳細化し、AXI fabric、Cバス相対alias、`cbus_ip_top`統合を別Queueとして提案する。
+このQ書は提案であり、まだRTL実装を許可しない。ユーザが`Q20260901-013`または`ws004p001`の実行を明示承認した後に、Queue statusをrunningへ変更して着手する。

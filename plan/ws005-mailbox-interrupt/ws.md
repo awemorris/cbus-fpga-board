@@ -8,7 +8,7 @@ Status: in-progress (p002 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws005p002`でstandalone mailbox/router RTLと自己検査BFMを完了した。`ws005p005`を実行可能なP書へ詳細化済みであり、次はdefault-disabledのCバスalias、一Manager/三target AXI decoder、`cbus_ip_top`統合を有限Queueとして提案できる。
+Resume point: `ws005p002`でstandalone mailbox/router RTLを完了し、`ws005p005`は共通IP統合まで詳細化済みである。ユーザ要件により`ws005p004`をCバスI/O/memory range-write frontendとして詳細化した。p004は`ws003p004`の共通requestと`ws005p005`統合後に実装する。
 
 ## Objective
 
@@ -21,11 +21,11 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 - CPU IRQ集約とCバスIRQ出力
 - overflow、underflow、重複doorbell、reset時の意味論
 - AXI4-Lite CSR、CバスI/O公開窓、ファームウェアdriver
-- 将来の監視レジスタwrite-event FIFOを追加できる拡張点
+- 設定可能なCバスI/O/memory range-write event FIFOとCPU external IRQ通知
 
 ## Non-goals
 
-- すべての公開レジスタwriteを自動的にIRQへ変換すること
+- 全Cバスwriteを無条件にIRQへ変換すること。明示enableしたrangeだけを対象にする。
 - IRQ番号、I/Oポート番号を根拠や競合調査なしに固定すること
 - 高帯域データをmailboxだけで転送すること
 
@@ -43,7 +43,7 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 | [`ws005p001`](phase001-register-contract/phase.md) | completed | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
 | [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | completed | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
-| `ws005p004` | proposed | 必要性が実証された場合だけ監視write-event FIFOを追加する。 |
+| [`ws005p004`](phase004-cbus-write-event-frontend/phase.md) | planned after ws003p004/ws005p005 | 設定rangeへのCバスwriteをFIFOへcaptureしCPU external IRQへ通知する。 |
 | [`ws005p005`](phase005-cbus-alias-integration/phase.md) | planned; ready | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
 
 ## Completion conditions
