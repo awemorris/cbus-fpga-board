@@ -1,6 +1,6 @@
 # CバスFPGAボード Master Plan
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 Status: approved, active
 
@@ -34,7 +34,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 
 ## 4. 現在の状況
 
-- MWP-Q計画構造に加え、最初のboard非依存RTLとしてCバスI/O BFM、最小target engine、固定CSRを実装した。回路図、PCB、board top、constraint、AXI、ファームウェアは未実装。
+- MWP-Q計画構造に加え、board非依存RTLとしてCバスI/O target engine、dual-clock CDC、AXI4-Lite Manager bridge、固定CSRと自己検査BFMを実装した。回路図、PCB、board top、constraint、AXI interconnect、ファームウェアは未実装。
 - CバスとFPGAの間にLVC系トランシーバを置く方針、AXI4を内部標準とする方針は合意済み。
 - Tangファミリを採用し、Primer 20KとMega 138K非Proを差し替え可能なboard targetとして扱う方針は合意済み。初回試作はPrimer推奨だが、共通IPはどちらにも依存させない。
 - 74LVC16245Aまたは74LVC162245Aは候補であり、電圧、方向、OE、電流、伝搬遅延、パッケージ、入手性の確認前には部品確定としない。
@@ -55,6 +55,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - 初期の設計・互換性試験・保証対象は386以降とする。8086/70116/80286固有差は記録のみ保持する。S001上では486/Pentiumも同じ後期型signal/cycle familyであり、parameter差として扱う。後続資料または実測でprotocol上の不連続が判明した場合は再検討する。
 - Queue完了時または切りのよい境界で、成果をcommitして`git push origin master`することがユーザから許可されている。
 - `ws003p001`を完了した。100 MHz内部clockで非同期I/O strobeを同期化し、一件の`cbus_req/cbus_rsp`へ変換するtarget MVPとID/version/scratch/status CSRを実装した。Icarus Verilog 12.0で8/16-bit lane、wait/timeout、無効/非選択、reset/platform abort、contention/Xを157 checks検証した。
+- `ws003p002`を完了した。Gray pointerのdual-clock request/response FIFO、8-bit tagによる遅延response隔離、32-bit AXI4-Lite Manager bridgeをboard非依存subsystemへ統合した。異なる10 ns/14 ns clock、AXI channel別backpressure、byte lane、SLVERR、timeout後の復旧を含む合計467 checksを検証した。
 
 ## 5. 固定済みの主要設計判断
 
@@ -63,6 +64,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - リセット、コンフィグ、クロック未確立、バス非所有時にはCバス向け出力をHigh-Zとする。
 - Cバス受動ターゲットと能動バスマスタを別エンジンに分離する。
 - CバスとAXIのクロック領域は分離し、要求・応答FIFOでCDCする。実際のサンプリング方式はタイミング根拠により確定する。
+- Cバス16-bit wordは32-bit AXI4-Lite registerへword単位で展開し、Cバスoffset `+0/+2/+4/+6`をAXI offset `+0/+4/+8/+12`へ変換する。8-bit tagでtimeout後の遅延responseを隔離する。
 - ユーザIPは生のCバスへ接続せず、AXI-Lite、IRQ、DMA要求、必要に応じAXI-Streamまたは保護されたAXI Managerを使用する。
 - Cバスから入ったAXI要求がPC-98ホスト窓へ再入する経路は禁止し、再帰デッドロックを防ぐ。
 - 初期のCPUキャッシュは無効、またはDMA共有領域を非キャッシュとし、整合性問題を後段へ持ち越さない。
@@ -137,7 +139,7 @@ AXI4-Lite
 | --- | --- | --- | --- | --- | --- |
 | `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 次はp004 DMA/bus-master契約、または測定器準備後のp005実機互換性 | [WS001](ws001-cbus-contract/ws.md) |
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p001 completed) | MG001, MG002 | 次のQueueで共通IP top、二つのboard top、安全OE境界を具体化する | [WS002](ws002-fpga-platform/ws.md) |
-| `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p001 completed) | MG002 | 次はp002の非同期FIFOとAXI4-Lite bridge | [WS003](ws003-target-bridge/ws.md) |
+| `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p002 completed) | MG002 | 次はp003のregion guard、下流timeout/fault recovery、エラー記録 | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
 | `ws005` | メールボックス・割り込み | planned | MG003 | 最小レジスタ契約を確定する | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | DMAモード別の信号・安全条件を確定する | [WS006](ws006-dma-bus-master/ws.md) |

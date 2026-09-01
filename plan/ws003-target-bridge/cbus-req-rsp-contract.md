@@ -29,7 +29,7 @@
 | `rsp_rdata[15:0]` | read data。hostは`req_be`で選択されたlaneだけを使用する。 |
 | `rsp_error` | read-only writeまたはbackend decode error。 |
 
-Responseにtagはないため、MVP backendは順序を変えず一件だけ返す。複数outstanding、CDC、tag、AXI response変換は`ws003p002`以降で追加する。
+MVP直結portにtagはないため、同期backendは順序を変えず一件だけ返す。`ws003p002`の[CDC・AXI4-Lite契約](cdc-axil-contract.md)ではCDC endpointが8-bit tagを付加し、timeout後の遅延responseを隔離する。target engineのport互換性は維持する。
 
 ## 4. Cバス側安全契約
 

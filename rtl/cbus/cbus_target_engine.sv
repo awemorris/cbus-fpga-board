@@ -72,7 +72,9 @@ module cbus_target_engine #(
     always_comb begin
         cbus_data_oe_req = rst_n && platform_ready && data_oe_internal && !cycle_write;
         cbus_iordy_oe_req = rst_n && platform_ready && iordy_oe_internal && !raw_active_strobe_n;
-        req_valid = rst_n && platform_ready && req_valid_internal;
+        req_valid =
+            rst_n && platform_ready && req_valid_internal &&
+            !raw_active_strobe_n;
         busy = state != ST_IDLE;
     end
 
@@ -163,6 +165,9 @@ module cbus_target_engine #(
                         iordy_oe_internal <= 1'b0;
                         abort_sticky <= 1'b1;
                         state <= ST_IDLE;
+                    end else if (req_valid_internal && req_ready) begin
+                        req_valid_internal <= 1'b0;
+                        state <= ST_WAIT_RSP;
                     end else if (elapsed_cycles >= TIMEOUT_CYCLES - 1) begin
                         req_valid_internal <= 1'b0;
                         iordy_oe_internal <= 1'b0;
@@ -175,10 +180,6 @@ module cbus_target_engine #(
                     end else begin
                         if (elapsed_cycles >= WAIT_ASSERT_CYCLES - 1)
                             iordy_oe_internal <= 1'b1;
-                        if (req_valid_internal && req_ready) begin
-                            req_valid_internal <= 1'b0;
-                            state <= ST_WAIT_RSP;
-                        end
                     end
                 end
 

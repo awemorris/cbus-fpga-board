@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p001`のBFM、最小target engine、固定CSRは完了した。次は`ws003p002`で非同期request/response FIFOとAXI4-Lite bridgeを計画する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
+Resume point: `ws003p002`の非同期request/response FIFO、tag、AXI4-Lite bridgeは完了した。次は`ws003p003`でregion guard、下流timeout/fault recovery、エラー記録を計画する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
 
 ## Objective
 
@@ -41,7 +41,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 | Phase | Status | Goal |
 | --- | --- | --- |
 | [`ws003p001`](phase001-bfm-target-mvp/phase.md) | completed | BFM、target engine、固定ID CSRで8/16-bit I/Oサイクルを検証する。 |
-| `ws003p002` | planned | CDC request/response FIFOとC-bus-to-AXI4-Liteブリッジを統合する。 |
+| [`ws003p002`](phase002-cdc-axil-bridge/phase.md) | completed | CDC request/response FIFOとC-bus-to-AXI4-Liteブリッジを統合する。 |
 | `ws003p003` | planned | AXI4 interconnect、region guard、timeout、エラー記録を追加する。 |
 | `ws003p004` | proposed | 根拠が揃ったCバスメモリサイクルと連続アクセスを追加する。 |
 | `ws003p005` | proposed | ユニバーサル基板上でID/CSRアクセスを実証する。 |
@@ -49,8 +49,8 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 ## Proposed module boundaries
 
 - `cbus_subsystem/cbus_target_engine`
-- `cbus_subsystem/cbus_req_async_fifo` と `cbus_rsp_async_fifo`
-- `cbus_to_axi_bridge`
+- `cbus_target_axil_subsystem/cbus_req_rsp_cdc/async_fifo`
+- `cbus_to_axil_bridge`
 - `axi4_to_axil_bridge`
 - `axi_region_guard` と `axi_timeout`
 - `system_csr`
