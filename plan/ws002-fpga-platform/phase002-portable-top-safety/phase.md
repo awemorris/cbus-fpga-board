@@ -115,3 +115,5 @@ WS001 signal/platform and WS002 pinout validators: PASS
 ```
 
 Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でcompile warningなし。外付けpull-up、停止clock、configuration中のpin state、Gowin合成、電気適合は未検証であり、実機High-Zの証明とはしていない。
+
+Follow-up: Queue `Q20260901-010`で暫定`axil_error_target`をSystem CSRへ置き換えた。上記は`ws002p002`完了時点の実行記録である。

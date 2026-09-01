@@ -22,7 +22,9 @@ def main() -> None:
 
     forbidden = re.compile(r"primer|mega|gowin|gw2|gw5|\bpackage\b|\bddr\b", re.IGNORECASE)
     assert not forbidden.search(ip), "board/vendor term leaked into rtl/ip/cbus_ip_top.sv"
+    assert "axil_system_csr" in ip, "System CSR is not owned by cbus_ip_top"
     assert "cbus_ip_top" in shell and "cbus_pad_adapter" in shell
+    assert "axil_system_csr" not in shell, "System CSR leaked into platform shell"
     assert "cbus_board_shell shell" in primer and "cbus_board_shell shell" in mega
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in primer
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in mega

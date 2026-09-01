@@ -90,28 +90,29 @@ module cbus_ip_top #(
     output logic        guard_fault_valid,
     output logic [2:0]  guard_fault_code,
     output logic        guard_fault_write,
-    output logic [31:0] guard_fault_addr,
-
-    output logic [31:0] m_axil_awaddr,
-    output logic [2:0]  m_axil_awprot,
-    output logic        m_axil_awvalid,
-    input  logic        m_axil_awready,
-    output logic [31:0] m_axil_wdata,
-    output logic [3:0]  m_axil_wstrb,
-    output logic        m_axil_wvalid,
-    input  logic        m_axil_wready,
-    input  logic [1:0]  m_axil_bresp,
-    input  logic        m_axil_bvalid,
-    output logic        m_axil_bready,
-    output logic [31:0] m_axil_araddr,
-    output logic [2:0]  m_axil_arprot,
-    output logic        m_axil_arvalid,
-    input  logic        m_axil_arready,
-    input  logic [31:0] m_axil_rdata,
-    input  logic [1:0]  m_axil_rresp,
-    input  logic        m_axil_rvalid,
-    output logic        m_axil_rready
+    output logic [31:0] guard_fault_addr
 );
+
+    logic [31:0] m_axil_awaddr;
+    logic [2:0]  m_axil_awprot;
+    logic        m_axil_awvalid;
+    logic        m_axil_awready;
+    logic [31:0] m_axil_wdata;
+    logic [3:0]  m_axil_wstrb;
+    logic        m_axil_wvalid;
+    logic        m_axil_wready;
+    logic [1:0]  m_axil_bresp;
+    logic        m_axil_bvalid;
+    logic        m_axil_bready;
+    logic [31:0] m_axil_araddr;
+    logic [2:0]  m_axil_arprot;
+    logic        m_axil_arvalid;
+    logic        m_axil_arready;
+    logic [31:0] m_axil_rdata;
+    logic [1:0]  m_axil_rresp;
+    logic        m_axil_rvalid;
+    logic        m_axil_rready;
+    logic [31:0] system_scratch_value;
 
     // The 69-pin boundary reserves future memory, DMA and 286+ bus-master
     // paths.  The present passive I/O-target build keeps every such drive
@@ -221,9 +222,48 @@ module cbus_ip_top #(
         .m_axil_rready(m_axil_rready)
     );
 
+    axil_system_csr #(
+        .BASE_ADDR(AXIL_BASE_ADDR)
+    ) system_csr (
+        .clk(axi_clk),
+        .rst_n(rst_n),
+        .cbus_timeout_sticky_async(timeout_sticky),
+        .cbus_invalid_sticky_async(invalid_sticky),
+        .cbus_backend_error_sticky_async(backend_error_sticky),
+        .cbus_abort_sticky_async(abort_sticky),
+        .guard_faulted(guard_faulted),
+        .guard_reject_sticky(guard_reject_sticky),
+        .guard_timeout_sticky(guard_timeout_sticky),
+        .guard_downstream_error_sticky(guard_downstream_error_sticky),
+        .guard_fault_valid(guard_fault_valid),
+        .guard_fault_code(guard_fault_code),
+        .guard_fault_write(guard_fault_write),
+        .scratch_value(system_scratch_value),
+        .s_axil_awaddr(m_axil_awaddr),
+        .s_axil_awprot(m_axil_awprot),
+        .s_axil_awvalid(m_axil_awvalid),
+        .s_axil_awready(m_axil_awready),
+        .s_axil_wdata(m_axil_wdata),
+        .s_axil_wstrb(m_axil_wstrb),
+        .s_axil_wvalid(m_axil_wvalid),
+        .s_axil_wready(m_axil_wready),
+        .s_axil_bresp(m_axil_bresp),
+        .s_axil_bvalid(m_axil_bvalid),
+        .s_axil_bready(m_axil_bready),
+        .s_axil_araddr(m_axil_araddr),
+        .s_axil_arprot(m_axil_arprot),
+        .s_axil_arvalid(m_axil_arvalid),
+        .s_axil_arready(m_axil_arready),
+        .s_axil_rdata(m_axil_rdata),
+        .s_axil_rresp(m_axil_rresp),
+        .s_axil_rvalid(m_axil_rvalid),
+        .s_axil_rready(m_axil_rready)
+    );
+
     // Keep the reservation explicit without letting it affect implemented
     // behavior.  Synthesis will remove this zero-weight observation.
     wire unused_reserved_inputs = reserved_inputs_known;
+    wire unused_system_scratch = ^system_scratch_value;
 
 endmodule
 

@@ -1,6 +1,6 @@
 # ws005p001: メールボックス・割り込みレジスタ契約
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws005`
 
@@ -8,7 +8,7 @@ Phase ID: `p001`
 
 Combined ID: `ws005p001`
 
-Status: planned after `ws003p002`
+Status: planned; dependency satisfied by `ws003p006`
 
 Parent: [WS005](../ws.md)
 

@@ -1,6 +1,6 @@
 # WS005: メールボックス・割り込み
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws005`
 
@@ -8,7 +8,7 @@ Status: planned
 
 Parent: [master plan](../master.md)
 
-Resume point: System CSRの読書き成立後、`ws005p001`で通知契約を実装可能な形へ固定する。
+Resume point: `ws003p006`でSystem CSRのCバス読書きが成立した。次のQueue候補は`ws005p001`で、物理IRQ番号を決めずに相対mailbox/doorbell/IRQ契約を固定する。
 
 ## Objective
 
@@ -40,7 +40,7 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| [`ws005p001`](phase001-register-contract/phase.md) | planned after ws003p002 | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
+| [`ws005p001`](phase001-register-contract/phase.md) | planned; dependency satisfied | mailbox/doorbell/IRQのレジスタと状態遷移を固定する。 |
 | `ws005p002` | planned | mailbox FIFO、interrupt router、W1C/maskをRTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
 | `ws005p004` | proposed | 必要性が実証された場合だけ監視write-event FIFOを追加する。 |

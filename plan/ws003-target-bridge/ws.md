@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws003p003`まで完了し、CバスI/OからCDC、AXI4-Lite、region guard、timeout/quarantineまで自己検査済みである。次はWS002の共通IP/board top安全境界を優先する。`ws003p004`はメモリcycle根拠が揃った後、`ws003p005`は試作hardware準備後に再開する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
+Resume point: `ws003p006`まで完了し、CバスI/Oから共通System CSRのID/version/scratch/statusまでPrimer/Mega論理topで自己検査済みである。次は依存が満たされた`ws005p001`通知契約へ進める。`ws003p004`はメモリcycle根拠後、`ws003p005`は試作hardware準備後に再開する。実機I/O baseは未選定のため`0x00d0`を仮値のまま使用する。
 
 ## Objective
 
@@ -45,6 +45,7 @@ PC-98がCバスI/O/メモリ空間からFPGA内AXI4/AXI4-Lite資源へ、正し�
 | [`ws003p003`](phase003-axil-guard-timeout/phase.md) | completed | AXI4-Lite protected route、region guard、timeout/quarantine、エラー記録を追加する。 |
 | `ws003p004` | proposed | 根拠が揃ったCバスメモリサイクルと連続アクセスを追加する。 |
 | `ws003p005` | proposed | ユニバーサル基板上でID/CSRアクセスを実証する。 |
+| [`ws003p006`](phase006-system-csr/phase.md) | completed | AXI4-Lite System CSRを実装し共通IPへ統合する。 |
 
 ## Proposed module boundaries
 

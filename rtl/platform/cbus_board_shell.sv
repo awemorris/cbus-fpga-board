@@ -76,21 +76,6 @@ module cbus_board_shell #(
     logic platform_ready;
     logic rst_n;
 
-    logic [31:0] axil_awaddr;
-    logic [2:0] axil_awprot;
-    logic axil_awvalid, axil_awready;
-    logic [31:0] axil_wdata;
-    logic [3:0] axil_wstrb;
-    logic axil_wvalid, axil_wready;
-    logic [1:0] axil_bresp;
-    logic axil_bvalid, axil_bready;
-    logic [31:0] axil_araddr;
-    logic [2:0] axil_arprot;
-    logic axil_arvalid, axil_arready;
-    logic [31:0] axil_rdata;
-    logic [1:0] axil_rresp;
-    logic axil_rvalid, axil_rready;
-
     assign rst_n = reset_released && cbus_reset_n;
     assign platform_ready = drive_permit;
 
@@ -175,25 +160,7 @@ module cbus_board_shell #(
         .busy(), .timeout_sticky(), .invalid_sticky(), .backend_error_sticky(),
         .abort_sticky(), .stale_rsp_pulse(), .guard_faulted(), .guard_fault_reset_req(),
         .guard_reject_sticky(), .guard_timeout_sticky(), .guard_downstream_error_sticky(),
-        .guard_fault_valid(), .guard_fault_code(), .guard_fault_write(), .guard_fault_addr(),
-        .m_axil_awaddr(axil_awaddr), .m_axil_awprot(axil_awprot), .m_axil_awvalid(axil_awvalid),
-        .m_axil_awready(axil_awready), .m_axil_wdata(axil_wdata), .m_axil_wstrb(axil_wstrb),
-        .m_axil_wvalid(axil_wvalid), .m_axil_wready(axil_wready), .m_axil_bresp(axil_bresp),
-        .m_axil_bvalid(axil_bvalid), .m_axil_bready(axil_bready), .m_axil_araddr(axil_araddr),
-        .m_axil_arprot(axil_arprot), .m_axil_arvalid(axil_arvalid), .m_axil_arready(axil_arready),
-        .m_axil_rdata(axil_rdata), .m_axil_rresp(axil_rresp), .m_axil_rvalid(axil_rvalid),
-        .m_axil_rready(axil_rready)
-    );
-
-    axil_error_target no_local_target (
-        .clk(axi_clk), .rst_n(rst_n),
-        .s_axil_awaddr(axil_awaddr), .s_axil_awprot(axil_awprot), .s_axil_awvalid(axil_awvalid),
-        .s_axil_awready(axil_awready), .s_axil_wdata(axil_wdata), .s_axil_wstrb(axil_wstrb),
-        .s_axil_wvalid(axil_wvalid), .s_axil_wready(axil_wready), .s_axil_bresp(axil_bresp),
-        .s_axil_bvalid(axil_bvalid), .s_axil_bready(axil_bready), .s_axil_araddr(axil_araddr),
-        .s_axil_arprot(axil_arprot), .s_axil_arvalid(axil_arvalid), .s_axil_arready(axil_arready),
-        .s_axil_rdata(axil_rdata), .s_axil_rresp(axil_rresp), .s_axil_rvalid(axil_rvalid),
-        .s_axil_rready(axil_rready)
+        .guard_fault_valid(), .guard_fault_code(), .guard_fault_write(), .guard_fault_addr()
     );
 
 endmodule

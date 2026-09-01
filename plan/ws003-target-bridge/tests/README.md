@@ -60,6 +60,13 @@ The standalone `ws003p003` test checks:
 7. local DECERR for new requests while faulted
 8. accepted-read response timeout, late R drain, subordinate reset, explicit fault clear, and recovery
 
+## `tb_axil_system_csr`
+
+The board-independent four-word System CSR subordinate checks product ID,
+version/capability, byte-strobe scratch updates, synchronized C-bus/guard
+status, independent AW/W arrival, B/R backpressure stability, RO `SLVERR`,
+invalid/unaligned `DECERR`, and coherent reset.
+
 ## `tb_cbus_guarded_axil`
 
 The end-to-end guard test uses unrelated 10 ns C-bus and 14 ns AXI clocks. It verifies normal ID/scratch access, an AXI response timeout that returns a C-bus backend error before the C-bus timeout, faulted local rejection without downstream leakage, subordinate reset plus fault clear, and coherent system-reset recovery.

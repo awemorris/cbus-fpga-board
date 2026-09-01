@@ -25,7 +25,7 @@ $repo_root/rtl/axi/cbus_to_axil_bridge.sv
 $repo_root/rtl/cbus/cbus_target_axil_subsystem.sv
 $repo_root/rtl/axi/axil_guard_timeout.sv
 $repo_root/rtl/cbus/cbus_target_guarded_axil_subsystem.sv
-$repo_root/rtl/axi/axil_error_target.sv
+$repo_root/rtl/ip/axil_system_csr.sv
 $repo_root/rtl/ip/cbus_ip_top.sv
 $repo_root/rtl/platform/cbus_pad_adapter.sv
 $repo_root/rtl/platform/cbus_board_shell.sv

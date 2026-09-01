@@ -46,6 +46,10 @@ compile_and_run tb_axil_guard_timeout \
     "$repo_root/rtl/axi/axil_guard_timeout.sv" \
     "$repo_root/plan/ws003-target-bridge/tests/tb_axil_guard_timeout.sv"
 
+compile_and_run tb_axil_system_csr \
+    "$repo_root/rtl/ip/axil_system_csr.sv" \
+    "$repo_root/plan/ws003-target-bridge/tests/tb_axil_system_csr.sv"
+
 compile_and_run tb_cbus_guarded_axil \
     "$repo_root/rtl/common/reset_sync.sv" \
     "$repo_root/rtl/common/async_fifo.sv" \

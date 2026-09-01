@@ -95,6 +95,52 @@ module tb_portable_board_tops;
         begin for (i = 0; i < count; i = i + 1) @(posedge board_clk); end
     endtask
 
+    task automatic cbus_read(
+        input logic [15:0] address,
+        input logic [15:0] expected,
+        input string message
+    );
+        begin
+            host_ab = {8'h00, address};
+            host_db_drive = 1'b0;
+            host_ior_n = 1'b0;
+            fork
+                begin
+                    wait (!p_lvc[1]);
+                    #1;
+                    check(!m_lvc[1], "selected read OE equivalence");
+                    check(p_db === m_db, "selected read data equivalence");
+                    check(p_db === expected, message);
+                end
+                begin idle_cycles(100); $fatal(1, "selected read timed out"); end
+            join_any
+            disable fork;
+            host_ior_n = 1'b1;
+            fork
+                begin wait (p_lvc[1] && m_lvc[1]); end
+                begin idle_cycles(20); $fatal(1, "read release timed out"); end
+            join_any
+            disable fork;
+            check(p_lvc[1] && m_lvc[1], "read release returns High-Z");
+            idle_cycles(2);
+        end
+    endtask
+
+    task automatic cbus_write(input logic [15:0] address, input logic [15:0] data);
+        begin
+            host_ab = {8'h00, address};
+            host_db = data;
+            host_db_drive = 1'b1;
+            host_iow_n = 1'b0;
+            idle_cycles(16);
+            check(p_lvc === m_lvc, "selected write board equivalence");
+            check(p_lvc[1] && m_lvc[1], "write never drives data");
+            host_iow_n = 1'b1;
+            host_db_drive = 1'b0;
+            idle_cycles(6);
+        end
+    endtask
+
     initial begin
         checks = 0;
         host_ab = 24'h000000; host_db = 16'h0000; host_db_drive = 1'b0;
@@ -128,37 +174,21 @@ module tb_portable_board_tops;
         host_ior_n = 1'b1;
         idle_cycles(4);
 
-        host_ab = 24'h0000d0;
-        host_ior_n = 1'b0;
-        fork
-            begin
-                wait (!p_lvc[1]);
-                #1;
-                check(!m_lvc[1], "selected read OE equivalence");
-                check(p_db === m_db, "selected read data equivalence");
-                check(p_db === 16'he001, "unimplemented AXI target returns error data");
-            end
-            begin
-                idle_cycles(100);
-                $fatal(1, "selected read timed out");
-            end
-        join_any
-        disable fork;
-        host_ior_n = 1'b1;
-        fork
-            begin wait (p_lvc[1] && m_lvc[1]); end
-            begin idle_cycles(20); $fatal(1, "read release timed out"); end
-        join_any
-        disable fork;
-        check(p_lvc[1] && m_lvc[1], "read release returns High-Z");
+        cbus_read(16'h00d0, 16'hcb98, "System CSR product ID");
+        cbus_read(16'h00d2, 16'h0002, "System CSR ABI version");
+        cbus_read(16'h00d6, 16'h0000, "System CSR clean status");
 
-        host_ab = 24'h0000d2; host_db = 16'h55aa; host_db_drive = 1'b1;
-        host_iow_n = 1'b0;
-        idle_cycles(16);
-        check(p_lvc === m_lvc, "selected write board equivalence");
-        check(p_lvc[1] && m_lvc[1], "write never drives data");
-        host_iow_n = 1'b1; host_db_drive = 1'b0;
+        host_bhe_n = 1'b0;
+        cbus_write(16'h00d4, 16'h55aa);
+        host_bhe_n = 1'b1;
+        cbus_write(16'h00d4, 16'h0033);
+        host_bhe_n = 1'b0;
+        cbus_write(16'h00d5, 16'hcc00);
+        cbus_read(16'h00d4, 16'hcc33, "System CSR scratch byte lanes");
+
+        cbus_write(16'h00d0, 16'hffff);
         idle_cycles(4);
+        cbus_read(16'h00d6, 16'h1384, "System CSR backend/guard first-fault status");
 
         cbus_power_n = 1'b0;
         #0;
