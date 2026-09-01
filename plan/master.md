@@ -61,6 +61,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - `ws003p006`を完了した。共通IP内に四wordのAXI4-Lite System CSRを統合し、ID/version/capability、byte-strobe scratch、Cバス/guard status summaryを実装した。Primer/Mega topのCバス8-byte窓から同じCSRを読書きでき、現在のHDL回帰4033 checksをPASSした。guard fault clearは遮断済みCバス経路へ置かず、独立管理経路の後続課題とした。
 - `ws005p001`を完了した。H2C/C2Hを各8-entry×32-bit FIFO、doorbellを1-bit coalescing pending、interruptをCPU/host別mask/W1CとするABI v1を固定した。31 register、17 event、16のCバス相対aliasをJSONからSV/C/Rustへ生成し、24 contract checksをPASSした。物理IRQ番号、I/O base、RISC-Vは未決定のままである。
 - `ws005p002`を完了した。同期FIFO core、独立AXI4-Lite mailbox/router、二つのsubordinate portを接続するboard-independent subsystemを実装した。FIFO境界表25 checksと31 register、event routing、W1C/mask/set-wins、doorbell coalescing、AXI backpressure/error/resetの91 checksをPASSし、既存HDL 4033 checksとABI 24 checksに回帰がない。共通IP/AXI fabric/Cバスalias統合は後続`ws005p005`に残す。
+- `ws005p005`を完了した。default-disabledの32-byte Cバスmailbox alias、生成ABIに基づく16 alias/compound diagnostic変換、System CSR/router/mailbox用1×3 AXI4-Lite decoder、guard fault event、logical IRQ観測を共通IPへ統合した。alias無効buildのSystem CSR経路は不変であり、新規211 checksを含むHDL合計4390 checks、ABI 24 checks、全validatorがPASSした。実I/O baseと物理IRQ/OEは未決定・未接続のままである。
 - 初回ユニバーサル基板試作用として、ユーザがx86ラボ`CB-U04`を購入した。現物は保全し、IP-complete gate後に表裏パターン、カードエッジ処理、+5 V/GND引出し、Cバス端子からlandへの導通を確認する。
 - `ws001p004`、`ws003p004`、`ws004p001`を実行可能なP書へ詳細化した。従来DMA/bus-master契約、default-disabledの24-bit memory target、user-designed RISC-V coreの外部AXI4/IRQ ABIを、回路図・PCB・DDR・実機を待たずに進められる。
 - SALEはWS001 signal matrix上のA39世代多重信号だが、現行69 endpoint/board topには未収容である。memory target RTLではlogical `cbus_sale_i`と安全tieまでを扱い、Primerのpin/LVC/CST追加はIP-complete gate後の物理planningへ残す。
@@ -76,6 +77,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - Cバス受動ターゲットと能動バスマスタを別エンジンに分離する。
 - CバスとAXIのクロック領域は分離し、要求・応答FIFOでCDCする。実際のサンプリング方式はタイミング根拠により確定する。
 - Cバス16-bit wordは32-bit AXI4-Lite registerへword単位で展開し、Cバスoffset `+0/+2/+4/+6`をAXI offset `+0/+4/+8/+12`へ変換する。8-bit tagでtimeout後の遅延responseを隔離する。
+- MailboxのCバス公開窓は32-byte aligned parameterで、safe defaultでは無効とする。enable時だけ16 relative aliasを`0x1000_2xxx/3xxx`へ変換し、compound診断も一件ずつguard経由で実行する。logical host IRQがpendingでも物理CバスIRQ/OEは別Phaseまで駆動しない。
 - Cバス由来AXI4-Lite Managerは既定でSystem CSR `0x1000_0000-0x1000_0fff`だけを許可し、PC-98 host apertureをlocal DECERRにする。AXI timeout後はVALID handshakeの有無にかかわらず下流をquarantineし、subordinate reset後の明示的fault clearまで再利用しない。
 - ユーザIPは生のCバスへ接続せず、AXI-Lite、IRQ、DMA要求、必要に応じAXI-Streamまたは保護されたAXI Managerを使用する。
 - Cバスから入ったAXI要求がPC-98ホスト窓へ再入する経路は禁止し、再帰デッドロックを防ぐ。
@@ -156,7 +158,7 @@ AXI4-Lite
 | `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed; physical deferred) | MG001, MG002 | production wrapper、外付け回路、p003試作はIP-complete gate後 | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p006 completed) | MG002 | 詳細化済みp004 memory target RTLを先行し、p005実機はgate後 | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | in-progress (p001 completed) | MG003 | p005 control統合後にp002 AXI fabricを詳細化しreference SoCへ進む | [WS004](ws004-soc-runtime/ws.md) |
-| `ws005` | メールボックス・割り込み | in-progress (p002 completed) | MG003 | p005共通IP統合後、p004 selected range-write frontendを追加する | [WS005](ws005-mailbox-interrupt/ws.md) |
+| `ws005` | メールボックス・割り込み | in-progress (p005 completed) | MG003 | ws003p004後にp004 selected range-write frontendを追加する | [WS005](ws005-mailbox-interrupt/ws.md) |
 | `ws006` | DMA・Cバスバスマスタ | planning | MG004 | ws001p004後に従来DMA/bus-master BFM、WS004 reference memory後にlocal DMAを進める | [WS006](ws006-dma-bus-master/ws.md) |
 | `ws007` | ユーザIP SDK・サンプル | proposed | MG005 | 基盤APIが安定後に詳細化する | [WS007](ws007-user-ip-sdk/ws.md) |
 | `ws008` | 専用PCB・製造・頒布 | proposed (deferred) | MG002, MG006 | IP-complete gate後にCB-U04調査、ユニバーサル試作、専用PCBへ進む | [WS008](ws008-production-board/ws.md) |
@@ -189,7 +191,7 @@ Verification evidence is produced inside every Workstream and is consumed by the
 ### IP-complete gateまでの優先順
 
 1. 完了済み`ws004p001`のuser core AXI4/IRQ ABIとsafe stubを基準にし、並行可能な調査として`ws001p004`でDMA/bus-master契約を確定する。
-2. `ws003p004`の24-bit memory targetと`ws005p005`のmailbox alias/control fabric統合を、safe-defaultのboard-independent RTLとして実装する。
+2. 完了済み`ws005p005`のmailbox alias/control fabricを基準にし、`ws003p004`の24-bit memory targetをsafe-defaultのboard-independent RTLとして実装する。
 3. p001の結果から`ws004p002` AXI interconnectと`ws004p004` CPU/ROM/BRAM reference SoCを詳細化・実装し、`ws005p004` range-write frontendを外部IRQへ統合する。
 4. `ws006p002`従来DMA、`ws006p004`bus owner/master、`ws006p001`local DMAをBFM/reference memoryで検証する。
 5. WS007のuser IP ABI/SDKと統合回帰を完成し、IP-complete gateを判定する。

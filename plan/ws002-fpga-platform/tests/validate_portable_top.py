@@ -25,7 +25,10 @@ def main() -> None:
     assert "axil_system_csr" in ip, "System CSR is not owned by cbus_ip_top"
     assert "cbus_ip_top" in shell and "cbus_pad_adapter" in shell
     assert "axil_system_csr" not in shell, "System CSR leaked into platform shell"
-    assert "cbus_board_shell shell" in primer and "cbus_board_shell shell" in mega
+    shell_instance = re.compile(r"cbus_board_shell\s*(?:#\s*\([^;]+\))?\s+shell\s*\(", re.DOTALL)
+    assert shell_instance.search(primer) and shell_instance.search(mega)
+    assert ".CBUS_MBX_ENABLE(CBUS_MBX_ENABLE)" in primer
+    assert ".CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE)" in primer
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in primer
     assert "ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0" in mega
 

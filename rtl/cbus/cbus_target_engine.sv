@@ -4,6 +4,8 @@
 module cbus_target_engine #(
     parameter logic [15:0] IO_BASE_ADDR = 16'h00d0,
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
+    parameter bit          CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
     parameter integer WAIT_ASSERT_CYCLES = 4,
     parameter integer TIMEOUT_CYCLES = 600,
     parameter integer RELEASE_HOLD_CYCLES = 1
@@ -64,10 +66,23 @@ module cbus_target_engine #(
     wire iow_n = iow_n_sync[1];
     wire ior_fall = ior_n_prev && !ior_n;
     wire iow_fall = iow_n_prev && !iow_n;
-    wire selected = (cbus_addr_i & IO_ADDR_MASK) == (IO_BASE_ADDR & IO_ADDR_MASK);
+    wire system_selected =
+        (cbus_addr_i & IO_ADDR_MASK) == (IO_BASE_ADDR & IO_ADDR_MASK);
+    wire mailbox_selected = CBUS_MBX_ENABLE &&
+        ((cbus_addr_i & 16'hffe0) == (CBUS_MBX_IO_BASE & 16'hffe0));
+    wire selected = system_selected || mailbox_selected;
     wire [1:0] current_be = {~cbus_bhe_n_i, ~cbus_addr_i[0]};
     wire active_strobe_n = cycle_write ? iow_n : ior_n;
     wire raw_active_strobe_n = cycle_write ? cbus_iow_n_i : cbus_ior_n_i;
+
+    initial begin
+        if (CBUS_MBX_ENABLE && (CBUS_MBX_IO_BASE[4:0] != 5'b00000))
+            $fatal(1, "CBUS_MBX_IO_BASE must be 32-byte aligned");
+        if (CBUS_MBX_ENABLE &&
+            ((CBUS_MBX_IO_BASE & IO_ADDR_MASK) ==
+             (IO_BASE_ADDR & IO_ADDR_MASK)))
+            $fatal(1, "C-bus System CSR and mailbox apertures overlap");
+    end
 
     always_comb begin
         cbus_data_oe_req = rst_n && platform_ready && data_oe_internal && !cycle_write;

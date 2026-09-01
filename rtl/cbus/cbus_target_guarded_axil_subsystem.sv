@@ -4,6 +4,8 @@
 module cbus_target_guarded_axil_subsystem #(
     parameter logic [15:0] IO_BASE_ADDR = 16'h00d0,
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
+    parameter bit          CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000,
     parameter logic [31:0] AXIL_ALLOW_BASE_ADDR = 32'h1000_0000,
     parameter logic [31:0] AXIL_ALLOW_ADDR_MASK = 32'hffff_f000,
@@ -100,6 +102,8 @@ module cbus_target_guarded_axil_subsystem #(
     cbus_target_axil_subsystem #(
         .IO_BASE_ADDR(IO_BASE_ADDR),
         .IO_ADDR_MASK(IO_ADDR_MASK),
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
         .AXIL_BASE_ADDR(AXIL_BASE_ADDR),
         .WAIT_ASSERT_CYCLES(WAIT_ASSERT_CYCLES),
         .TIMEOUT_CYCLES(CBUS_TIMEOUT_CYCLES),

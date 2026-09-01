@@ -4,7 +4,9 @@
 module tang_mega138k_top #(
     // Zero is the only production-safe default until a Gowin clock/config
     // status wrapper and carrier safety latch replace this raw-clock shell.
-    parameter bit ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0
+    parameter bit ENABLE_RAW_CLOCK_TEST_ONLY = 1'b0,
+    parameter bit CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000
 ) (
     input  logic board_clk,
     inout  wire [23:0] cbus_ab,
@@ -23,7 +25,10 @@ module tang_mega138k_top #(
 
     wire test_enable = ENABLE_RAW_CLOCK_TEST_ONLY;
 
-    cbus_board_shell shell (
+    cbus_board_shell #(
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE)
+    ) shell (
         .cbus_logic_clk(board_clk), .axi_clk(board_clk),
         .power_good(cbus_power_n), .config_done(test_enable),
         .clock_locked(test_enable), .reset_released(cbus_reset_n),

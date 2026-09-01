@@ -34,6 +34,7 @@ compile_and_run tb_async_fifo \
     "$repo_root/plan/ws003-target-bridge/tests/tb_async_fifo.sv"
 
 compile_and_run tb_cbus_axil_bridge \
+    "$repo_root/rtl/include/cbus_mailbox_regs_pkg.sv" \
     "$repo_root/rtl/common/reset_sync.sv" \
     "$repo_root/rtl/common/async_fifo.sv" \
     "$repo_root/rtl/cbus/cbus_target_engine.sv" \
@@ -51,6 +52,7 @@ compile_and_run tb_axil_system_csr \
     "$repo_root/plan/ws003-target-bridge/tests/tb_axil_system_csr.sv"
 
 compile_and_run tb_cbus_guarded_axil \
+    "$repo_root/rtl/include/cbus_mailbox_regs_pkg.sv" \
     "$repo_root/rtl/common/reset_sync.sv" \
     "$repo_root/rtl/common/async_fifo.sv" \
     "$repo_root/rtl/cbus/cbus_target_engine.sv" \

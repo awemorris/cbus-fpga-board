@@ -4,6 +4,8 @@
 module cbus_target_axil_subsystem #(
     parameter logic [15:0] IO_BASE_ADDR = 16'h00d0,
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
+    parameter bit          CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000,
     parameter integer WAIT_ASSERT_CYCLES = 4,
     parameter integer TIMEOUT_CYCLES = 600,
@@ -95,6 +97,8 @@ module cbus_target_axil_subsystem #(
     cbus_target_engine #(
         .IO_BASE_ADDR(IO_BASE_ADDR),
         .IO_ADDR_MASK(IO_ADDR_MASK),
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
         .WAIT_ASSERT_CYCLES(WAIT_ASSERT_CYCLES),
         .TIMEOUT_CYCLES(TIMEOUT_CYCLES),
         .RELEASE_HOLD_CYCLES(RELEASE_HOLD_CYCLES)
@@ -161,6 +165,9 @@ module cbus_target_axil_subsystem #(
     cbus_to_axil_bridge #(
         .TAG_WIDTH(TAG_WIDTH),
         .CBUS_IO_BASE_ADDR(IO_BASE_ADDR),
+        .CBUS_IO_ADDR_MASK(IO_ADDR_MASK),
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
         .AXIL_BASE_ADDR(AXIL_BASE_ADDR)
     ) axil_bridge (
         .clk(a_clk),

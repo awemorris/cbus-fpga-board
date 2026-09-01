@@ -6,6 +6,8 @@
 module cbus_board_shell #(
     parameter logic [15:0] IO_BASE_ADDR = 16'h00d0,
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
+    parameter bit          CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
     parameter integer WAIT_ASSERT_CYCLES = 4,
     parameter integer CBUS_TIMEOUT_CYCLES = 600,
     parameter integer AXIL_TIMEOUT_CYCLES = 256
@@ -131,6 +133,8 @@ module cbus_board_shell #(
     cbus_ip_top #(
         .IO_BASE_ADDR(IO_BASE_ADDR),
         .IO_ADDR_MASK(IO_ADDR_MASK),
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
         .WAIT_ASSERT_CYCLES(WAIT_ASSERT_CYCLES),
         .CBUS_TIMEOUT_CYCLES(CBUS_TIMEOUT_CYCLES),
         .AXIL_TIMEOUT_CYCLES(AXIL_TIMEOUT_CYCLES)
@@ -160,7 +164,8 @@ module cbus_board_shell #(
         .busy(), .timeout_sticky(), .invalid_sticky(), .backend_error_sticky(),
         .abort_sticky(), .stale_rsp_pulse(), .guard_faulted(), .guard_fault_reset_req(),
         .guard_reject_sticky(), .guard_timeout_sticky(), .guard_downstream_error_sticky(),
-        .guard_fault_valid(), .guard_fault_code(), .guard_fault_write(), .guard_fault_addr()
+        .guard_fault_valid(), .guard_fault_code(), .guard_fault_write(), .guard_fault_addr(),
+        .mailbox_cpu_irq_active(), .mailbox_host_irq_active()
     );
 
 endmodule

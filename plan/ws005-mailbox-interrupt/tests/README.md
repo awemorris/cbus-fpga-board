@@ -13,6 +13,19 @@ ports, all 31 ABI registers, FIFO ordering and boundary errors, interrupt
 mask/pending/W1C set-wins behavior, doorbell coalescing, response
 backpressure, decode errors and coherent reset.
 
+The `ws005p005` tests add:
+
+- `tb_cbus_mailbox_alias_bridge`: all 16 aliases, low/high slices, WSTRB,
+  upper-byte command no-op behavior, three-read diagnostic composition,
+  up-to-three-write diagnostic acknowledge expansion, and first-error stop.
+- `tb_axil_control_fabric_1x3`: AW-first, W-first and simultaneous writes,
+  independent read routing, B/R backpressure, local DECERR gaps, and reset of
+  a held split transaction.
+- `tb_cbus_mailbox_alias_top`: asynchronous C-bus/AXI clocks through target,
+  CDC, guard, decoder and mailbox/router; System CSR compatibility; H2C
+  push/doorbell; logical pending; host polling; guard-fault event bit 6;
+  nonselected High-Z; and physical IRQ remaining disconnected.
+
 The check validates the canonical JSON schema, block/register uniqueness,
 alignment, access/owner metadata, event destination masks and the relative
 C-bus aliases. It then proves that the checked-in SystemVerilog, C and Rust

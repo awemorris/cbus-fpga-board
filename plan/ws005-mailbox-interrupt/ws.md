@@ -4,11 +4,11 @@
 
 WSID: `ws005`
 
-Status: in-progress (p002 completed)
+Status: in-progress (p005 completed)
 
 Parent: [master plan](../master.md)
 
-Resume point: `ws005p002`でstandalone mailbox/router RTLを完了し、`ws005p005`は共通IP統合まで詳細化済みである。ユーザ要件により`ws005p004`をCバスI/O/memory range-write frontendとして詳細化した。p004は`ws003p004`の共通requestと`ws005p005`統合後に実装する。
+Resume point: `ws005p005`でdefault-disabled Cバスalias、control fabric、mailbox/router共通IP統合を完了した。次は`ws003p004`のI/O/memory共通request完成後に、詳細化済み`ws005p004`のCバスI/O/memory range-write frontendを実装する。
 
 ## Objective
 
@@ -44,7 +44,7 @@ PC-98、RISC-V CPU、DMA、ユーザIPのイベントを、通常レジスタア
 | [`ws005p002`](phase002-mailbox-router-rtl/phase.md) | completed | mailbox FIFO、interrupt router、W1C/maskをstandalone RTL実装する。 |
 | `ws005p003` | planned | RISC-V driverとPC-98診断プログラムで双方向通知を検証する。 |
 | [`ws005p004`](phase004-cbus-write-event-frontend/phase.md) | planned after ws003p004/ws005p005 | 設定rangeへのCバスwriteをFIFOへcaptureしCPU external IRQへ通知する。 |
-| [`ws005p005`](phase005-cbus-alias-integration/phase.md) | planned; ready | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
+| [`ws005p005`](phase005-cbus-alias-integration/phase.md) | completed | AXI fabric/Cバス相対aliasと共通IPへ統合し、polling BFMで検証する。 |
 
 ## Completion conditions
 

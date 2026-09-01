@@ -6,9 +6,12 @@
 module cbus_ip_top #(
     parameter logic [15:0] IO_BASE_ADDR = 16'h00d0,
     parameter logic [15:0] IO_ADDR_MASK = 16'hfff8,
+    parameter bit          CBUS_MBX_ENABLE = 1'b0,
+    parameter logic [15:0] CBUS_MBX_IO_BASE = 16'h0000,
     parameter logic [31:0] AXIL_BASE_ADDR = 32'h1000_0000,
     parameter logic [31:0] AXIL_ALLOW_BASE_ADDR = 32'h1000_0000,
-    parameter logic [31:0] AXIL_ALLOW_ADDR_MASK = 32'hffff_f000,
+    parameter logic [31:0] AXIL_ALLOW_ADDR_MASK =
+        CBUS_MBX_ENABLE ? 32'hffff_c000 : 32'hffff_f000,
     parameter integer WAIT_ASSERT_CYCLES = 4,
     parameter integer CBUS_TIMEOUT_CYCLES = 600,
     parameter integer AXIL_TIMEOUT_CYCLES = 256,
@@ -90,7 +93,9 @@ module cbus_ip_top #(
     output logic        guard_fault_valid,
     output logic [2:0]  guard_fault_code,
     output logic        guard_fault_write,
-    output logic [31:0] guard_fault_addr
+    output logic [31:0] guard_fault_addr,
+    output logic        mailbox_cpu_irq_active,
+    output logic        mailbox_host_irq_active
 );
 
     logic [31:0] m_axil_awaddr;
@@ -113,6 +118,25 @@ module cbus_ip_top #(
     logic        m_axil_rvalid;
     logic        m_axil_rready;
     logic [31:0] system_scratch_value;
+
+    initial begin
+        if (CBUS_MBX_ENABLE && (AXIL_BASE_ADDR != 32'h1000_0000))
+            $fatal(1, "mailbox ABI requires System CSR base 0x10000000");
+        if (CBUS_MBX_ENABLE &&
+            (((32'h1000_0000 & AXIL_ALLOW_ADDR_MASK) !=
+              (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK)) ||
+             ((32'h1000_2000 & AXIL_ALLOW_ADDR_MASK) !=
+              (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK)) ||
+             ((32'h1000_3000 & AXIL_ALLOW_ADDR_MASK) !=
+              (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK))))
+            $fatal(1, "AXI guard must allow System CSR, interrupt and mailbox blocks");
+        if (CBUS_MBX_ENABLE &&
+            (((32'h8000_0000 & AXIL_ALLOW_ADDR_MASK) ==
+              (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK)) ||
+             ((32'h8100_0000 & AXIL_ALLOW_ADDR_MASK) ==
+              (AXIL_ALLOW_BASE_ADDR & AXIL_ALLOW_ADDR_MASK))))
+            $fatal(1, "C-bus Manager guard must deny PC-98 host apertures");
+    end
 
     // The 69-pin boundary reserves future memory, DMA and 286+ bus-master
     // paths.  The present passive I/O-target build keeps every such drive
@@ -162,6 +186,8 @@ module cbus_ip_top #(
     cbus_target_guarded_axil_subsystem #(
         .IO_BASE_ADDR(IO_BASE_ADDR),
         .IO_ADDR_MASK(IO_ADDR_MASK),
+        .CBUS_MBX_ENABLE(CBUS_MBX_ENABLE),
+        .CBUS_MBX_IO_BASE(CBUS_MBX_IO_BASE),
         .AXIL_BASE_ADDR(AXIL_BASE_ADDR),
         .AXIL_ALLOW_BASE_ADDR(AXIL_ALLOW_BASE_ADDR),
         .AXIL_ALLOW_ADDR_MASK(AXIL_ALLOW_ADDR_MASK),
@@ -222,9 +248,11 @@ module cbus_ip_top #(
         .m_axil_rready(m_axil_rready)
     );
 
-    axil_system_csr #(
-        .BASE_ADDR(AXIL_BASE_ADDR)
-    ) system_csr (
+    generate
+    if (CBUS_MBX_ENABLE) begin : g_mailbox_control
+        cbus_control_subsystem #(
+            .SYSTEM_BASE_ADDR(AXIL_BASE_ADDR)
+        ) control_subsystem (
         .clk(axi_clk),
         .rst_n(rst_n),
         .cbus_timeout_sticky_async(timeout_sticky),
@@ -238,7 +266,9 @@ module cbus_ip_top #(
         .guard_fault_valid(guard_fault_valid),
         .guard_fault_code(guard_fault_code),
         .guard_fault_write(guard_fault_write),
-        .scratch_value(system_scratch_value),
+        .system_scratch_value(system_scratch_value),
+        .mailbox_cpu_irq_active(mailbox_cpu_irq_active),
+        .mailbox_host_irq_active(mailbox_host_irq_active),
         .s_axil_awaddr(m_axil_awaddr),
         .s_axil_awprot(m_axil_awprot),
         .s_axil_awvalid(m_axil_awvalid),
@@ -257,8 +287,51 @@ module cbus_ip_top #(
         .s_axil_rdata(m_axil_rdata),
         .s_axil_rresp(m_axil_rresp),
         .s_axil_rvalid(m_axil_rvalid),
-        .s_axil_rready(m_axil_rready)
-    );
+            .s_axil_rready(m_axil_rready)
+        );
+    end else begin : g_system_only
+        assign mailbox_cpu_irq_active = 1'b0;
+        assign mailbox_host_irq_active = 1'b0;
+
+        axil_system_csr #(
+            .BASE_ADDR(AXIL_BASE_ADDR)
+        ) system_csr (
+            .clk(axi_clk),
+            .rst_n(rst_n),
+            .cbus_timeout_sticky_async(timeout_sticky),
+            .cbus_invalid_sticky_async(invalid_sticky),
+            .cbus_backend_error_sticky_async(backend_error_sticky),
+            .cbus_abort_sticky_async(abort_sticky),
+            .guard_faulted(guard_faulted),
+            .guard_reject_sticky(guard_reject_sticky),
+            .guard_timeout_sticky(guard_timeout_sticky),
+            .guard_downstream_error_sticky(guard_downstream_error_sticky),
+            .guard_fault_valid(guard_fault_valid),
+            .guard_fault_code(guard_fault_code),
+            .guard_fault_write(guard_fault_write),
+            .scratch_value(system_scratch_value),
+            .s_axil_awaddr(m_axil_awaddr),
+            .s_axil_awprot(m_axil_awprot),
+            .s_axil_awvalid(m_axil_awvalid),
+            .s_axil_awready(m_axil_awready),
+            .s_axil_wdata(m_axil_wdata),
+            .s_axil_wstrb(m_axil_wstrb),
+            .s_axil_wvalid(m_axil_wvalid),
+            .s_axil_wready(m_axil_wready),
+            .s_axil_bresp(m_axil_bresp),
+            .s_axil_bvalid(m_axil_bvalid),
+            .s_axil_bready(m_axil_bready),
+            .s_axil_araddr(m_axil_araddr),
+            .s_axil_arprot(m_axil_arprot),
+            .s_axil_arvalid(m_axil_arvalid),
+            .s_axil_arready(m_axil_arready),
+            .s_axil_rdata(m_axil_rdata),
+            .s_axil_rresp(m_axil_rresp),
+            .s_axil_rvalid(m_axil_rvalid),
+            .s_axil_rready(m_axil_rready)
+        );
+    end
+    endgenerate
 
     // Keep the reservation explicit without letting it affect implemented
     // behavior.  Synthesis will remove this zero-weight observation.

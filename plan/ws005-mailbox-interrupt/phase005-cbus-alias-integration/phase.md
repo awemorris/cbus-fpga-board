@@ -8,7 +8,7 @@ Phase ID: `p005`
 
 Combined ID: `ws005p005`
 
-Status: planned; ready for Queue proposal
+Status: completed
 
 Parent: [WS005](../ws.md)
 
@@ -185,14 +185,14 @@ New files:
 
 ## Work packages
 
-- [ ] Cバスtargetにdefault-disabledの第二32-byte aperture decodeと非重複assertionを追加する。
-- [ ] `cbus_to_axil_bridge`へ16 alias、low/high slice、compound diagnostic sequenceを追加する。
-- [ ] 一Manager/三target AXI4-Lite decoderを実装する。
-- [ ] mailbox/router subsystem、guard fault event、logical IRQ観測を`cbus_ip_top`へ統合する。
-- [ ] alias parameterをshell/Primer primary/Mega reference topへ同じsafe defaultで透過させる。
-- [ ] alias bridge、AXI decoder、Cバスtop統合の自己検査BFMを追加する。
-- [ ] ABI生成照合、WS002/WS003/WS005回帰、WS001/WS002 validatorを実行する。
-- [ ] 結果、check数、残る物理判断をM/W/P/Qへ同期する。
+- [x] Cバスtargetにdefault-disabledの第二32-byte aperture decodeと非重複assertionを追加する。
+- [x] `cbus_to_axil_bridge`へ16 alias、low/high slice、compound diagnostic sequenceを追加する。
+- [x] 一Manager/三target AXI4-Lite decoderを実装する。
+- [x] mailbox/router subsystem、guard fault event、logical IRQ観測を`cbus_ip_top`へ統合する。
+- [x] alias parameterをshell/Primer primary/Mega reference topへ同じsafe defaultで透過させる。
+- [x] alias bridge、AXI decoder、Cバスtop統合の自己検査BFMを追加する。
+- [x] ABI生成照合、WS002/WS003/WS005回帰、WS001/WS002 validatorを実行する。
+- [x] 結果、check数、残る物理判断をM/W/P/Qへ同期する。
 
 ## Verification plan
 
@@ -248,6 +248,20 @@ Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなしを
 - logical IRQは観測できるが、物理CバスIRQ/OEは本Phase後も0/High-Z側である。
 - ABI/schema/generator、WS002/WS003/WS005 HDL回帰、WS001/WS002 validatorがすべてPASSする。
 - 実CバスI/O base、IRQ番号、RISC-Vを未決定のまま完了できる。
+
+## Execution result
+
+2026-09-01 Queue `Q20260901-014`で完了した。
+
+- `CBUS_MBX_ENABLE=0`をsafe defaultとする第二32-byte apertureを追加した。enable時はbaseの32-byte整列、System CSR窓との非重複、guardが`0x1000_0000-0x1000_3fff`を許可しhost apertureを拒否することをelaboration時に検査する。
+- `cbus_to_axil_bridge`へ生成ABI定数を使う16 alias、status upper/lower slice、W1P upper-byte no-op、`HOST_DIAG_STATUS`三read、`HOST_DIAG_ACK`最大三writeを実装した。compound sequenceは一件ずつ発行し、最初のAXI errorで停止する。
+- `axil_control_fabric_1x3`を実装し、System CSR、interrupt router、mailboxへread/writeを独立にrouteする。`0x1000_1xxx`と範囲外は下流無駆動のlocal DECERRとした。
+- `cbus_control_subsystem`でSystem CSRと既存standalone mailbox/routerを統合し、guard fault 0→1をCPU event bit 6へ一pulseで接続した。logical CPU/host IRQは`cbus_ip_top`から観測できるが、物理`cbus_irq_assert`と`lvc_irq_oe_req`は0のままである。
+- alias無効buildは既存System CSRへ直結するgenerate branchとし、従来の応答latencyとsafe-default回帰を変更しない。Primer/Mega wrapperは同じdisabled defaultとparameterを透過する。
+- 新規BFMはalias bridge 150 checks、1×3 decoder 20 checks、Cバス共通IP統合41 checksをPASSした。既存FIFO/router 116 checksを含むWS005合計は327 checksである。
+- WS003 656、WS002 3377、WS004 30を合わせた現在のHDL合計は4390 checksである。mailbox ABI v1の31 registers、17 events、16 aliases、SV/C各12 checks、WS001/WS002のsignal/platform/timing/pin/portable-top validatorもPASSした。
+
+実I/O base、物理IRQ番号/OE/LVC、CPU/firmware、複数Manager fabric、Gowin合成、回路図、PCB、実機は実装していない。
 
 ## Interruption and resume policy
 

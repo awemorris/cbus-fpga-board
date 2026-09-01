@@ -2,7 +2,7 @@
 
 最終更新: 2026-09-01
 
-Queue ID: `Q20260901-013`
+Queue ID: `Q20260901-014`
 
 Queue status: finished
 
@@ -10,55 +10,59 @@ Parent: [master plan](master.md)
 
 ## 1. Queue proposal
 
-`ws004p001`だけを実行し、ユーザ設計RISC-VコアをSoCへ差し替える外部I/O契約、safe stub、port validator、自己検査BFMを作る。
+`ws005p005`だけを実行し、standalone mailbox/interrupt subsystemをboard-independent `cbus_ip_top`へ統合する。default-disabledのparameterized Cバス32-byte alias、16 alias変換、compound diagnostic operation、CバスManager専用1×3 AXI4-Lite decoder、guard fault event、logical IRQ観測を実装・検証する。
 
-ユーザはRISC-Vコア内部を自分で設計し、プロジェクト側にはAXI4・割り込みその他の必要port詳細化とstub作成を求めた。本Queueはそのうち、依存がなく単独検証できるcore slot境界だけを有限範囲にする。
+ユーザは2026-09-01に「`ws005p005`を実行します」と指示した。今回のtimeboxは、このセッションで合理的に完了または`uncleared`判定までとする。
 
 ## 2. Execution registry
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws004p001` | [phase.md](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md) | completed | 2026-09-01 user explicitly approved execution |
+| 1 | `ws005p005` | [phase.md](ws005-mailbox-interrupt/phase005-cbus-alias-integration/phase.md) | completed | 2026-09-01 user explicitly approved execution |
 
 ## 3. Included
 
-- 単一32-bit AXI4 Managerの全AW/W/B/AR/R port、parameter、対応subsetを契約化する。
-- software/timer/external interruptのactive-high level入力を契約化する。
-- clock、active-Low reset、enable、boot address、hart ID、sleep/halted/trap diagnosticを契約化する。
-- 全AXI request/responseをinactiveに保つ`riscv_core_ip_stub`を実装する。
-- module/port/width/constantを検査するvalidatorとIcarus自己検査BFMを追加する。
-- stub使用時にCPU unavailableと扱うintegration checklistを記録する。
-- 既存WS002/WS003/WS005回帰と構造validatorを再実行する。
-- 実行結果をM/W/P/Qへ同期し、切れ目でcommit/pushする。
+- System CSR 8-byte窓とdefault-disabled mailbox 32-byte窓を認識するCバスtarget decode。
+- 16 relative alias、low/high slice、`HOST_DIAG_STATUS`三read、`HOST_DIAG_ACK`最大三writeの変換。
+- CバスManager一つからSystem CSR、interrupt router、mailboxへ振り分ける1×3 AXI4-Lite decoder。
+- mailbox/router subsystem、guard fault event bit 6、logical CPU/host IRQの`cbus_ip_top`統合。
+- alias parameterのboard shell、Primer primary top、Mega reference topへのsafe-default透過。
+- alias bridge、decoder、共通IP統合の自己検査BFM。
+- ABI生成照合、WS002/WS003/WS005回帰、WS001/WS002 validator。
+- 実行結果のM/W/P/Q同期と、完了境界でのcommit/push。
 
 ## 4. Excluded
 
-- ユーザ所有RISC-V coreのpipeline、ISA、CSR/trap、cache、debug、toolchain、firmware。
-- AXI interconnect、AXI4-to-AXI4-Lite bridge、timer/software-interrupt CSR、boot ROM。
-- `ws005p004` Cバスrange-write frontendのRTL。P書の詳細化まで済んでいるが、`ws003p004/ws005p005`未完のため今回Queueへ入れない。
-- Primer DDR/Gowin primitive、回路図、PCB、実機。
+- 実機用CバスI/O base、decode jumper/DIP/software設定。
+- 物理CバスIRQ番号、極性、共有、OE、LVC配線、実機IRQ試験。
+- RISC-V core、firmware/ISR、PC-98診断プログラム。
+- 複数AXI Managerの仲裁、一般SoC fabric、DDR/DMA/user IP統合。
+- Gowin合成、回路図、PCB、実機。
 
 ## 5. Dependencies and uncertainty
 
-- user coreはまだ存在しなくてもstubとport manifestだけで完了できる。
-- 初期fabric保証はread/write各1 outstanding、INCR burst、32-bit dataとする。user coreが複数Manager、coherency、より多いoutstanding、NMI/debug pinを必須とする場合はABIを推測変更せず`uncleared`として判断点を記録する。
-- stubは機能CPUではなく、RISC-V bootやfirmware testを成功扱いにしない。
+- `ws005p001/p002`のABI v1、`ws003p002/p003`のCDC/guard契約、`ws003p006`のSystem CSR契約を変更しない。
+- alias enable時だけguard許可範囲を`0x1000_0000-0x1000_3fff`へ広げ、host apertureは引き続き禁止する。
+- compound operationが既存一件outstanding契約を超える一般仲裁を必要とする場合は、Phaseを拡大せず`uncleared`として判断点を記録する。
+- logical host IRQがpendingでも物理`cbus_irq_assert`と`lvc_irq_oe_req`は0を維持する。
 
 ## 6. Completion decision
 
-[ws004p001 Phase Book](ws004-soc-runtime/phase001-riscv-soc-requirements/phase.md)のcompletion conditionsを満たし、新規validator/BFMと既存回帰がPASSした場合に`completed`とする。合理的に完了できない場合は理由、得られたinterface情報、再開条件を記録して`uncleared`とする。
+[ws005p005 Phase Book](ws005-mailbox-interrupt/phase005-cbus-alias-integration/phase.md)のcompletion conditionsを満たし、指定されたABI/HDL/validator回帰がPASSした場合に`completed`とする。合理的に完了できない場合は理由、保存した成果、再開条件を記録して`uncleared`とする。
 
 ## 7. Authorization boundary
 
-2026-09-01にユーザが「実行してください」と指示し、本Queueの実行を承認した。
+2026-09-01にユーザが「`ws005p005`を実行します」と指示し、本Queueの実行を承認した。
 
 ## 8. Execution result
 
-`ws004p001` completed。
+`ws005p005` completed。
 
-- user-owned `riscv_core_ip`と同形にする`riscv_core_ip_stub`を実装した。
-- ABIは50 ports、3 parameters、単一32-bit AXI4 Manager、三machine-mode IRQ、control/status/diagnosticである。
-- interface正本、CSV manifest、Python validator、30-check Icarus BFMを追加した。
-- stubは全AXI request/response acceptanceをinactive、payloadを0、haltedを1に固定し、入力変化でside effectを発生しない。
-- 新規と既存のHDL合計4179 checks、mailbox ABI 24 checks、WS001/WS002 validatorがすべてPASSした。
-- Cバスselected range-write frontendはP書だけを詳細化済みであり、依存する`ws003p004/ws005p005`後へ残した。
+- Cバスtargetへsafe-default disabledの32-byte mailbox apertureとalignment/non-overlap assertionを追加した。
+- 生成ABIに基づく16 alias、low/high slice、三read diagnostic status、最大三write diagnostic acknowledgeを実装した。
+- CバスManager専用1×3 AXI4-Lite decoderと`cbus_control_subsystem`を追加し、System CSR、interrupt router、mailboxを共通IPへ統合した。
+- guard fault 0→1をCPU event bit 6へ接続し、logical CPU/host IRQを観測可能にした。物理CバスIRQ/OEは0を維持した。
+- alias無効buildは従来System CSRへ直結し、Primer/Mega wrapperのsafe defaultと既存応答を不変にした。
+- 新規alias bridge 150、decoder 20、top統合41 checksを追加した。WS005は既存116を含む327 checks、全HDLはWS002 3377、WS003 656、WS004 30と合わせて4390 checksをPASSした。
+- mailbox ABI v1の31 registers、17 events、16 aliases、SV/C各12 checks、WS001/WS002 signal/platform/timing/pin/portable-top validatorがすべてPASSした。
+- 実I/O base、物理IRQ番号/OE/LVC、RISC-V/firmware、複数Manager fabric、Gowin合成、回路図、PCB、実機は後続Phaseへ残した。

@@ -211,4 +211,4 @@ python3 plan/ws005-mailbox-interrupt/tests/generate_mailbox_constants.py
 - CバスIRQ番号、jumper/DIP/softwareの選択方式。
 - IRQ共有可否、電気極性、OE、reset/configuration中High-Z。
 - 実CPUとfirmware ISR。RISC-Vコア内部はユーザ設計とし、外部AXI4/IRQ ABIは`ws004p001`で扱う。
-- AXI interconnect、standalone mailbox/router RTLと`cbus_ip_top`の統合、Cバスalias bridgeの実装。standalone RTL自体は`ws005p002`で完了済み。
+- 複数AXI Managerを扱うSoC interconnect。CバスManager専用1×3 decoder、standalone mailbox/routerの`cbus_ip_top`統合、default-disabled Cバスalias bridgeは`ws005p005`で完了済み。
