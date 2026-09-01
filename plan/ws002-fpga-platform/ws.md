@@ -1,6 +1,6 @@
 # WS002: FPGA・電気・安全プラットフォーム
 
-最終更新: 2026-08-31
+最終更新: 2026-09-01
 
 WSID: `ws002`
 
@@ -8,7 +8,7 @@ Status: in-progress
 
 Parent: [master plan](../master.md)
 
-Resume point: 共通69 endpointとPrimer/Mega connector mappingを入力に、別Queueで`ws002p002`を具体化し、共通`cbus_ip_top` port、2種類のboard top、CST、安全OE gateを実装・検証する。
+Resume point: `ws002p002`のdrive-disabled board wrapperとCSTを入力に、Gowin clock/config status wrapper、外付けOE pull-up、安全latch、power/DIR/OE回路を回路図へ具体化してから`ws002p003`の段階立上げへ進む。測定器なしではCバス接続試験を開始しない。
 
 ## Objective
 
@@ -42,7 +42,7 @@ Tang FPGAモジュール、LVCフロントエンド、電源、クロック、�
 | Phase | Status | Goal |
 | --- | --- | --- |
 | [`ws002p001`](phase001-component-selection/phase.md) | completed | Tang/LVC/電源/ソケット候補を定量比較し、試作構成案を得る。 |
-| `ws002p002` | planned | `cbus_pad_adapter`、clock/reset、vendor wrapperの契約と安全プロパティを実装する。 |
+| [`ws002p002`](phase002-portable-top-safety/phase.md) | completed | `cbus_pad_adapter`、共通IP、Primer/Mega top、CSTと安全プロパティを実装する。 |
 | `ws002p003` | planned | ユニバーサル基板試作を組み、電源・High-Z・単方向入力から段階的に立ち上げる。 |
 | `ws002p004` | proposed | 温度、電圧、タイミング余裕と長時間安定性を測定する。 |
 

@@ -2,7 +2,7 @@
 
 決定日: 2026-08-31
 
-状態: approved design decision; RTL未実装
+状態: implemented logical boundary in `ws002p002`; production hardware wrapper未実装
 
 ## 1. 決定
 
@@ -58,7 +58,7 @@ tang_primer20k_top                 tang_mega138k_top
 | `debug_if` | UART/diagnostic event等。物理LEDやUSB-UARTの有無を共通IPへ漏らさない。 |
 | `safe_drive_if` | 共通IPの方向/OE requestと、board topが返す実drive-enabled状態。安全gateをbypassしない。 |
 
-SystemVerilog `interface`を使うかflat port bundleにするかは、Gowin/iverilog双方でのtool compatibilityを確認して`ws002p002`で決める。論理契約はどちらでも同一にする。
+`ws002p002`ではIcarus/Gowin間の可搬性と構造検査の単純さを優先し、SystemVerilog `interface`ではなくflat port bundleを採用した。
 
 ## 5. 想定するsource配置
 
@@ -83,7 +83,7 @@ sim/
   cbus_ip_top/...
 ```
 
-source配置は実装Queueで作成する。現時点では計画上の境界であり、ファイルを先行生成しない。
+`ws002p002`で`rtl/ip/cbus_ip_top.sv`、`rtl/platform/cbus_pad_adapter.sv`、共通board shell、二つのboard top、二つのCSTを配置した。Gowin primitive wrapperとproduction timing constraintは未配置である。
 
 ## 6. 受入条件
 
@@ -98,5 +98,5 @@ source配置は実装Queueで作成する。現時点では計画上の境界で
 
 - 初回基板でbus-master用LVC/pinを実装済み、DNP、未配線のどれにするか。
 - Primer/MegaそれぞれのDDR controllerをいつ共通AXI境界へ接続するか。RISC-V優先度整理まではブロッカーにしない。
-- Gowin toolと`iverilog`の互換性を踏まえ、共通portをSystemVerilog `interface`とflat bundleのどちらにするか。
+- Gowin IDEでflat port/CSTを合成し、device版とtiming closureを確認すること。
 - Mega非ProのB/C device版を別board targetに分ける必要があるか。

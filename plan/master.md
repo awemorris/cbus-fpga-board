@@ -34,7 +34,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 
 ## 4. 現在の状況
 
-- MWP-Q計画構造に加え、board非依存RTLとしてCバスI/O target engine、dual-clock CDC、AXI4-Lite Manager bridge、固定CSRと自己検査BFMを実装した。回路図、PCB、board top、constraint、AXI interconnect、ファームウェアは未実装。
+- MWP-Q計画構造に加え、board非依存RTLとしてCバスI/O target engine、dual-clock CDC、AXI4-Lite Manager bridge、guard、共通IP topと自己検査BFMを実装した。Primer/Megaのdrive-disabled board wrapperとpin constraint fragmentも実装済みである。回路図、PCB、Gowin production wrapper、AXI interconnect、ファームウェアは未実装。
 - CバスとFPGAの間にLVC系トランシーバを置く方針、AXI4を内部標準とする方針は合意済み。
 - Tangファミリを採用し、Primer 20KとMega 138K非Proを差し替え可能なboard targetとして扱う方針は合意済み。初回試作はPrimer推奨だが、共通IPはどちらにも依存させない。
 - 74LVC16245Aまたは74LVC162245Aは候補であり、電圧、方向、OE、電流、伝搬遅延、パッケージ、入手性の確認前には部品確定としない。
@@ -57,6 +57,7 @@ PC-9800シリーズのCバスへ接続し、ユーザがAXI4側へ独自ハー�
 - `ws003p001`を完了した。100 MHz内部clockで非同期I/O strobeを同期化し、一件の`cbus_req/cbus_rsp`へ変換するtarget MVPとID/version/scratch/status CSRを実装した。Icarus Verilog 12.0で8/16-bit lane、wait/timeout、無効/非選択、reset/platform abort、contention/Xを157 checks検証した。
 - `ws003p002`を完了した。Gray pointerのdual-clock request/response FIFO、8-bit tagによる遅延response隔離、32-bit AXI4-Lite Manager bridgeをboard非依存subsystemへ統合した。異なる10 ns/14 ns clock、AXI channel別backpressure、byte lane、SLVERR、timeout後の復旧を含む合計467 checksを検証した。
 - `ws003p003`を完了した。System CSR regionだけを許可するAXI4-Lite guard、local DECERR、bounded timeout、全timeoutのquarantine、下流reset要求、first-fault recordを実装した。host aperture禁止、VALID保持、部分write、遅延response drain、Cバス統合復旧を含む合計635 checksを検証した。
+- `ws002p002`を完了した。flat-port `cbus_ip_top`、六条件の組合せ安全gate、共通board shell、Primer/Mega top、各69 endpoint＋clockのCSTを実装した。新規3355 checksと既存635 checks、構造・pin validatorをPASSした。board topの既定buildはdrive-disabledであり、Gowin clock/config status wrapper、外付けOE pull-up/安全latch、合成、実機High-Zは未検証のまま次Phaseへ残した。
 
 ## 5. 固定済みの主要設計判断
 
@@ -140,7 +141,7 @@ AXI4-Lite
 | WSID | Workstream | Status | Milestones | Resume point | W書 |
 | --- | --- | --- | --- | --- | --- |
 | `ws001` | Cバス仕様・インターフェース契約 | in-progress (p003 completed) | MG001 | 次はp004 DMA/bus-master契約、または測定器準備後のp005実機互換性 | [WS001](ws001-cbus-contract/ws.md) |
-| `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p001 completed) | MG001, MG002 | 次のQueueで共通IP top、二つのboard top、安全OE境界を具体化する | [WS002](ws002-fpga-platform/ws.md) |
+| `ws002` | FPGA・電気・安全プラットフォーム | in-progress (p002 completed) | MG001, MG002 | 次はGowin production wrapperと外付け安全回路を具体化し、測定環境準備後にp003立上げ | [WS002](ws002-fpga-platform/ws.md) |
 | `ws003` | Cバス・ターゲット/AXIブリッジ | in-progress (p003 completed) | MG002 | 次はWS002p002を優先。p004はメモリcycle根拠後、p005は試作hardware後 | [WS003](ws003-target-bridge/ws.md) |
 | `ws004` | AXI SoC・RISC-V・DRAMランタイム | planning (deferred) | MG003 | 優先順位と実行順を再整理してからCPU/ブート/DDR構成を選定する | [WS004](ws004-soc-runtime/ws.md) |
 | `ws005` | メールボックス・割り込み | planned | MG003 | 最小レジスタ契約を確定する | [WS005](ws005-mailbox-interrupt/ws.md) |

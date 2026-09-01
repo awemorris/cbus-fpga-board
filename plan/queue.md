@@ -2,7 +2,7 @@
 
 最終更新: 2026-09-01
 
-Queue ID: `Q20260901-008`
+Queue ID: `Q20260901-009`
 
 Queue status: finished
 
@@ -10,17 +10,17 @@ Parent: [master plan](master.md)
 
 ## 1. 現在の実行許可
 
-2026-09-01にユーザが、直前のhandoffで次候補として提示した`ws003p003`への進行を明示的に指示した。
+2026-09-01にユーザが、前Queue完了後の次作業へ進むよう明示的に指示した。
 
-`ws003p003`として、単一許可regionのAXI4-Lite guard、local DECERR、bounded timeout、assert済みtransactionのquarantine、明示的fault clear、sticky/first-fault record、board非依存wrapperをiverilogで実装・検証する。汎用interconnect、System CSR/IRQ配線、AXI4 Full、メモリcycle、DMA、board top、constraint、回路図、PCB、実機試験は含めない。
+`ws002p002`として、共通`cbus_ip_top`、安全なpad/OE gate、Primer/Mega board top、69 endpointのpackage constraint、iverilog/構造検査を実装・検証する。Gowin実primitive、回路図、PCB、実機試験、memory/DMA/bus-master/IRQ有効化、RISC-Vは含めない。
 
 ## 2. Queue作成前の確認事項
 
 - [x] Master Planは承認済みである。
-- [x] `ws003p002`が完了し、Cバス/CDC/AXI4-Lite Managerと非同期BFMを利用できる。
-- [x] Cバス由来ManagerをPC-98 host apertureへ再入させない方針がMaster Planで固定済みである。
-- [x] Cバスtimeoutより短い下流timeoutと、受理済みAXI transactionのcoherent reset境界が必要と判明している。
-- [x] ユーザが直前に提示した`ws003p003`への進行を指示した。
+- [x] `ws001p002-resume`で共通69 endpointと両module connector mappingが完了している。
+- [x] `ws003p001`から`ws003p003`でCバスtarget、CDC、AXI4-Lite guardが完了している。
+- [x] ユーザがPrimer/Megaのboard topだけを差し替え、共通IPを使う方針を決定している。
+- [x] RISC-Vは優先順位整理まで後回しである。
 - [x] 調査は時間制限なしである。
 - [x] `iverilog` 12.0と`vvp` 12.0が利用できる。
 - [x] ユーザがQueue完了時または切りのよい境界でのcommitと`git push origin master`を許可した。
@@ -29,52 +29,46 @@ Parent: [master plan](master.md)
 
 | Order | Queue item | Source | Status | Authorization |
 | --- | --- | --- | --- | --- |
-| 1 | `ws003p003` | [phase.md](ws003-target-bridge/phase003-axil-guard-timeout/phase.md) | completed | 2026-09-01 user requested proceeding to the next Queue |
+| 1 | `ws002p002` | [phase.md](ws002-fpga-platform/phase002-portable-top-safety/phase.md) | completed | 2026-09-01 user requested proceeding |
 
 ## 4. 前Queue
 
 - `Q20260831-001`: `ws001p001` completed、Queue finished。
-- `Q20260831-002`: `ws001p002` uncleared、Queue finished。34 GPIOでは16-bit以上が不足し、構成選択を`ws002p001`へ差し戻した。
-- `Q20260831-003`: `ws002p001` completed、Queue finished。初回Primer、将来Megaを推奨し、その後ユーザが両board topを共通IPへ接続する方針を決定した。
+- `Q20260831-002`: `ws001p002` uncleared、Queue finished。34 GPIOでは16-bit以上が不足した。
+- `Q20260831-003`: `ws002p001` completed、Queue finished。Primer初回、Mega将来候補を選定した。
 - `Q20260831-004`: `ws001p002-resume` completed、Queue finished。共通69 endpointをPrimer/Megaへ割り当てた。
-- `Q20260831-005`: `ws001p003` completed、Queue finished。9世代profile、93 timing parameter、6 cycle contractを作成した。
-- `Q20260901-006`: `ws003p001` completed、Queue finished。CバスI/O target MVPと157-checkのBFMを作成した。
-- `Q20260901-007`: `ws003p002` completed、Queue finished。dual-clock CDCとAXI4-Lite bridgeを合計467 checksで検証した。
+- `Q20260831-005`: `ws001p003` completed、Queue finished。386以降baselineを含むtiming contractを作成した。
+- `Q20260901-006`: `ws003p001` completed、Queue finished。CバスI/O target MVPを実装した。
+- `Q20260901-007`: `ws003p002` completed、Queue finished。dual-clock CDCとAXI4-Lite bridgeを実装した。
+- `Q20260901-008`: `ws003p003` completed、Queue finished。AXI guard/timeout/quarantineを実装した。
 
 ## 5. 実行結果
 
-`ws003p003` completed。
+`ws002p002` completed。
 
-- System CSR 4 KiBだけを許可するAXI4-Lite region guardを実装し、PC-98 memory/I/O host apertureを含む範囲外accessを下流handshakeなしのlocal DECERRにした。
-- 上流AW/Wを独立bufferし、両方が揃ってからaddress判定と下流forwardを行う。
-- AXI VALIDはREADY前にも取消せないという実装時発見をP書へ戻し、handshake前を含む全timeoutをquarantineする設計へ修正した。
-- timeout後も未handshake VALID/payloadを保持し、遅延B/Rをdrainする。fault中の新規requestは保存payloadを上書きせずlocal DECERRにする。
-- subordinate/interconnect reset後の`fault_clear`だけで再開し、`fault_reset_req`をreset controller向けに出力する。
-- guard/timeout/downstream-error stickyとfirst-fault code/direction/addressを実装し、status clearとfault clearを分離した。
-- 既存Cバス/CDC/AXI subsystemへguardを追加するboard非依存wrapperを実装した。
+- board非依存flat-port `cbus_ip_top`へ既存Cバスtarget、CDC、AXI4-Lite guardを収容した。
+- 六つの安全条件を組合せgateする`cbus_pad_adapter`を実装し、不許可時のpad High-Z/LVC OE禁止/DIR receiver側固定を検証した。
+- 同じ`cbus_board_shell`をinstantiateするPrimer/Mega topを実装した。production既定はdrive-disabled、raw-clock有効化はsimulation専用parameterとした。
+- 未実装local AXI targetをDECERRで有限終了するerror targetへ接続した。memory/DMA/bus-master/IRQの予約portは削らず、drive requestを非assertへ固定した。
+- Sipeed公式回路図から両boardの69 endpoint package locationを照合し、onboard clockを含む各70 locationのCST/manifestを生成した。
+- `rtl/ip/`以下へのboard/vendor固有名漏出、両wrapper構造同一性、CST一意性を機械検査した。
 
 検証結果:
 
-- 既存`tb_cbus_target_mvp` 157、`tb_async_fifo` 57、`tb_cbus_axil_bridge` 253 checks PASS。
-- `tb_axil_guard_timeout`: region reject、first fault、SLVERR、issue/partial/response timeout、VALID/payload保持、fault中payload非上書き、late drain、reset/clear/recoveryの65 checks PASS。
-- `tb_cbus_guarded_axil`: 通常CSR、guard timeoutがCバスtimeoutより先に返ること、fault中local error、下流reset後復旧、coherent resetの103 checks PASS。
-- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。合計635 checks PASS。
-- WS001 timing/signal/platform validatorとWS002 pinout validatorはすべてPASS。
+- `tb_cbus_pad_adapter`: 六安全入力64組、九drive request 512組、即時permit withdrawalを3340 checks PASS。
+- `tb_portable_board_tops`: production既定drive-disabled、reset、idle、非選択、選択read/write、power-good低下のPrimer/Mega同値性を15 checks PASS。
+- 新規WS002は3355 checks、既存WS003は635 checks、合計3990 HDL checks PASS。
+- Primer/Mega constraint、portable-top構造、WS001 signal/platform、WS002 pinout validatorはすべてPASS。
+- Icarus Verilog 12.0、SystemVerilog 2012、`-Wall -Wimplicit`でwarningなし。
 
-成果物: [AXI4-Lite guard契約](ws003-target-bridge/axil-guard-contract.md)、[実行手順](ws003-target-bridge/tests/README.md)、`rtl/axi/axil_guard_timeout.sv`、`rtl/cbus/cbus_target_guarded_axil_subsystem.sv`、二つの自己検査BFM。
-
-Queue内の許可作業を検証まで完了した。fault recordは安定したsidebandまでを実装し、System CSR/IRQ配線はWS005/WS004との後続境界へ残した。汎用複数target interconnect、メモリcycle、board top、constraint、回路図、PCB、実機試験は実施していない。
+外付けOE pull-up、clock停止、configuration中pin state、Gowin device primitive、合成/place-and-route、電気適合、実機High-Zは未検証である。これらを実装・測定するまでboard topは既定drive-disabledのままとし、Cバス実機へ接続しない。
 
 ## 6. 今回の実行内容
 
-実行内容:
-
-- single-region AXI4-Lite guardとlocal DECERRを実装する。
-- AXI VALID保持則に従い、handshake前を含む全下流timeoutをquarantineする。
-- fault中local error、late response drain、fault reset/clear境界を実装する。
-- sticky原因とfirst-fault code/direction/addressを記録する。
-- 既存subsystemへguardを接続するboard非依存wrapperと自己検査BFMを追加する。
-- 既存467 checksとWS001/WS002 validatorを回帰する。
-- M/W/P/Qを実績へ同期する。
+- flat-port共通IPと二つのboard topを実装する。
+- 六条件の安全permitでpad OE/LVC OEを即時gateする。
+- 69 endpointとオンボードclockの確認済みpackage CSTを作成する。
+- iverilog安全性・top同値試験、mapping構造検査、既存回帰を実行する。
+- 実機でのみ確認できる残条件をP/W/Mへ戻す。
 
 状態: 完了。
